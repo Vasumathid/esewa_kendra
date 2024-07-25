@@ -1,12 +1,15 @@
 package com.esewa_kendra;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -45,7 +48,7 @@ public class GenerateTokenServlet extends HttpServlet {
                         String kendraId = rs.getString("kendra_id");
 
                         // Retrieve service-specific details
-                        String serviceDetails = getServiceDetails(conn, serviceId, rs.getInt("id"));
+                        Map<String, String> serviceDetails = getServiceDetails(conn, serviceId, rs.getInt("id"));
                         String stateName = getStateNameById(conn, stateId);
                         String districtName = getDistrictNameById(conn, districtId);
                         String courtComplexName = getCourtComplexNameById(conn, courtComplexId);
@@ -53,10 +56,10 @@ public class GenerateTokenServlet extends HttpServlet {
 
                         // Set response content type to PDF
                         response.setContentType("application/pdf");
-                        response.setHeader("Content-Disposition", "attachment; filename=Token_" + tokenNumber + ".pdf");
 
                         // Create PDF
-                        try (OutputStream out = response.getOutputStream()) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        try (OutputStream out = baos) {
                             Document document = new Document();
                             PdfWriter.getInstance(document, out);
                             document.open();
@@ -79,12 +82,21 @@ public class GenerateTokenServlet extends HttpServlet {
                             addTableCell(table, "District:", districtName);
                             addTableCell(table, "Court Complex:", courtComplexName);
                             addTableCell(table, "E-Sewa Kendra:", kendraName);
-                            addTableCell(table, "Service Details:", serviceDetails);
+
+                            for (Map.Entry<String, String> entry : serviceDetails.entrySet()) {
+                                addTableCell(table, formatColumnName(entry.getKey()) + ":", entry.getValue());
+                            }
 
                             document.add(table);
                             document.close();
-                        } catch (DocumentException e) {
-                            throw new ServletException("Error generating PDF", e);
+                        }
+                        
+
+                        // Write the PDF as a byte array
+                        byte[] pdfBytes = baos.toByteArray();
+                        response.setContentLength(pdfBytes.length);
+                        try (OutputStream out = response.getOutputStream()) {
+                            out.write(pdfBytes);
                         }
                     } else {
                         response.sendError(HttpServletResponse.SC_NOT_FOUND, "Token not found");
@@ -93,6 +105,8 @@ public class GenerateTokenServlet extends HttpServlet {
             }
         } catch (SQLException | ClassNotFoundException e) {
             throw new ServletException("Database error", e);
+        }catch (DocumentException e) {
+            throw new ServletException("Error generating PDF", e);
         }
     }
 
@@ -109,7 +123,8 @@ public class GenerateTokenServlet extends HttpServlet {
         table.addCell(valueCell);
     }
 
-    private String getServiceDetails(Connection conn, String serviceId, int bookingId) throws SQLException {
+    private Map<String, String> getServiceDetails(Connection conn, String serviceId, int bookingId) throws SQLException {
+        Map<String, String> serviceDetails = new LinkedHashMap<>();
         String serviceName = getServiceNameById(conn, serviceId);
         if (serviceName != null) {
             String tableName = getTableNameForService(serviceName);
@@ -120,57 +135,24 @@ public class GenerateTokenServlet extends HttpServlet {
 
                     try (ResultSet rs = serviceStmt.executeQuery()) {
                         if (rs.next()) {
-                            // Fetch the column names dynamically
                             ResultSetMetaData metaData = rs.getMetaData();
                             int columnCount = metaData.getColumnCount();
-                            StringBuilder details = new StringBuilder();
 
                             for (int i = 1; i <= columnCount; i++) {
                                 String columnName = metaData.getColumnName(i);
                                 String value = rs.getString(columnName);
-
-                                // Check for the specific columns
-                                if ("date".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Date: ").append(value).append(", ");
-                                } else if ("time_slot".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Time Slot: ").append(value).append(", ");
-                                } else if ("hearing_date".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Hearing Date: ").append(value).append(", ");
-                                }
-                                // Add other specific columns based on the service
-                                else if ("case_type".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Case Type: ").append(value).append(", ");
-                                } else if ("cnr_number".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("CNR Number: ").append(value).append(", ");
-                                } else if ("pages_count".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Pages Count: ").append(value).append(", ");
-                                } else if ("court_fee_amount".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Court Fee Amount: ").append(value).append(", ");
-                                } else if ("case_number".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Case Number: ").append(value).append(", ");
-                                } else if ("court_name".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Court Name: ").append(value).append(", ");
-                                } else if ("district_name".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("District Name: ").append(value).append(", ");
-                                } else if ("case_year".equalsIgnoreCase(columnName) && value != null) {
-                                    details.append("Case Year: ").append(value).append(", ");
-                                }
+                                serviceDetails.put(columnName, value);
                             }
-
-                            if (details.length() > 0) {
-                                // Remove trailing comma and space
-                                details.setLength(details.length() - 2);
-                            } else {
-                                details.append("No details available");
-                            }
-
-                            return details.toString();
                         }
                     }
                 }
             }
         }
-        return "No details available";
+        return serviceDetails;
+    }
+
+    private String formatColumnName(String columnName) {
+        return columnName.replace("_", " ").toLowerCase();
     }
 
     private String getServiceNameById(Connection conn, String serviceId) throws SQLException {
@@ -188,18 +170,7 @@ public class GenerateTokenServlet extends HttpServlet {
     }
 
     private String getTableNameForService(String serviceName) {
-        switch (serviceName.toLowerCase()) {
-            case "efiling registration":
-                return "efiling_registration";
-            case "scanning":
-                return "scanning";
-            case "video conferencing":
-                return "video_conferencing";
-            case "assistance for filing":
-                return "assistance_filing";
-            default:
-                return null;
-        }
+        return serviceName.replace("for", "").replaceAll("\\s+", "_").toLowerCase();
     }
 
     private String getStateNameById(Connection conn, String stateId) throws SQLException {
