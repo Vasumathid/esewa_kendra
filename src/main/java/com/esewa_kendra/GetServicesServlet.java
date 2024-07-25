@@ -37,11 +37,12 @@ public class GetServicesServlet extends HttpServlet {
                 while (rs.next()) {
 
                     String columnName = rs.getString("column_name");
+                    String formattedColumnString=formatColumnName(columnName);
                     String dataType = rs.getString("data_type");
                     if (!columnName.equals("booking_id")) {
                         out.print("<div class='form-row mb-3'>");
                         out.print("<div class='col-md-4'>");
-                        out.print("<label for='" + columnName + "'class='required'>" + columnName + ":</label>");
+                        out.print("<label for='" + columnName + "'class='required'>" + formattedColumnString + ":</label>");
                         out.print("</div>");
                         out.print("<div class='col-md-8'>");
                         if (columnName.equals("case_type")) {
@@ -100,5 +101,22 @@ public class GetServicesServlet extends HttpServlet {
                 out.print("<div class='alert alert-danger'>Error loading service form.</div>");
             }
         }
+    }
+    public static String formatColumnName(String columnName) {
+        // Split the column name by underscores
+        String[] words = columnName.split("_");
+        
+        // Capitalize the first letter of each word and join them with spaces
+        StringBuilder formattedName = new StringBuilder();
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                // Capitalize the first letter and make the rest lowercase
+                String capitalizedWord = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+                formattedName.append(capitalizedWord).append(" ");
+            }
+        }
+        
+        // Remove the trailing space and return the formatted name
+        return formattedName.toString().trim();
     }
 }
