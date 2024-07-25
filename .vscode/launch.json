@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Attach) - Tomcat",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 8000,
+            "projectName": "esewa_kendra",
+            "sourcePaths": [
+                "${workspaceFolder}/src/main/java",
+                "${workspaceFolder}/src/test/java"
+            ],
+            "classPaths": [
+                "C:/Users/VasumathiDulasidaran/esewa_kendra/src/main/lib/mssql-jdbc-12.6.3.jre11.jar"
+            ],
+            "vmArgs": "-Djava.library.path=C:/Program Files/sqljdbc_12.6.3.0_enu/sqljdbc_12.6/enu/auth/x64/mssql-jdbc_auth-12.6.3.x64.dll"
+        }
+    ]
+}
