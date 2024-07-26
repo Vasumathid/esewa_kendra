@@ -18,12 +18,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.esewa_kendra.Util.ServiceUtil;
 
 @WebServlet("/bookService")
 public class BookServiceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         String stateId = request.getParameter("state");
         String districtId = request.getParameter("district");
         String courtComplexId = request.getParameter("courtComplex");
@@ -78,9 +80,10 @@ public class BookServiceServlet extends HttpServlet {
 
     private void insertServiceDetails(Connection conn, String serviceId, int bookingId, HttpServletRequest request)
             throws SQLException {
-        String serviceName = getServiceNameById(conn, serviceId);
+        ServiceUtil serviceUtil = new ServiceUtil();
+        String serviceName = serviceUtil.getServiceNameById(conn, serviceId);
         if (serviceName != null) {
-            String tableName = getTableNameForService(serviceName);
+            String tableName = serviceUtil.getTableNameForService(serviceName);
             if (tableName != null) {
                 String insertQuery = buildDynamicInsertQuery(conn, tableName, serviceId, bookingId, request);
                 if (insertQuery != null) {
@@ -90,35 +93,6 @@ public class BookServiceServlet extends HttpServlet {
                     }
                 }
             }
-        }
-    }
-
-    private String getServiceNameById(Connection conn, String serviceId) throws SQLException {
-        String serviceName = null;
-        String serviceTypeQuery = "SELECT name FROM services WHERE id = ?";
-        try (PreparedStatement serviceTypeStmt = conn.prepareStatement(serviceTypeQuery)) {
-            serviceTypeStmt.setInt(1, Integer.parseInt(serviceId));
-            try (ResultSet serviceTypeRs = serviceTypeStmt.executeQuery()) {
-                if (serviceTypeRs.next()) {
-                    serviceName = serviceTypeRs.getString("name");
-                }
-            }
-        }
-        return serviceName;
-    }
-
-    private String getTableNameForService(String serviceName) {
-        switch (serviceName.toLowerCase()) {
-            case "efiling registration":
-                return "efiling_registration";
-            case "scanning":
-                return "scanning";
-            case "video conferencing":
-                return "video_conferencing";
-            case "assistance for filing":
-                return "assistance_filing";
-            default:
-                return null;
         }
     }
 

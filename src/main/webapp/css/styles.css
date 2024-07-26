@@ -3669,3 +3669,11 @@ h1.display-4.title {
         padding-right: 1rem;
     }
 }
+#error-message {
+    display: none;
+    color: red;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    margin-bottom: 10px;
+}

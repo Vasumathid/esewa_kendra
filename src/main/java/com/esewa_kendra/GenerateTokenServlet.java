@@ -27,6 +27,7 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.esewa_kendra.Util.ServiceUtil;
 
 @WebServlet("/generateToken")
 public class GenerateTokenServlet extends HttpServlet {
@@ -34,7 +35,7 @@ public class GenerateTokenServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String tokenNumber = request.getParameter("token");
-
+        ServiceUtil serviceUtil = new ServiceUtil();
         try (Connection conn = DBConfig.getConnection()) {
             String bookingQuery = "SELECT * FROM bookings WHERE token_number = ?";
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery)) {
@@ -48,11 +49,12 @@ public class GenerateTokenServlet extends HttpServlet {
                         String kendraId = rs.getString("kendra_id");
 
                         // Retrieve service-specific details
-                        Map<String, String> serviceDetails = getServiceDetails(conn, serviceId, rs.getInt("id"));
-                        String stateName = getStateNameById(conn, stateId);
-                        String districtName = getDistrictNameById(conn, districtId);
-                        String courtComplexName = getCourtComplexNameById(conn, courtComplexId);
-                        String kendraName = getKendraNameById(conn, kendraId);
+                        Map<String, String> serviceDetails = serviceUtil.getServiceDetails(conn, serviceId,
+                                rs.getInt("id"));
+                        String stateName = serviceUtil.getStateNameById(conn, stateId);
+                        String districtName = serviceUtil.getDistrictNameById(conn, districtId);
+                        String courtComplexName = serviceUtil.getCourtComplexNameById(conn, courtComplexId);
+                        String kendraName = serviceUtil.getKendraNameById(conn, kendraId);
 
                         // Set response content type to PDF
                         response.setContentType("application/pdf");
@@ -84,13 +86,14 @@ public class GenerateTokenServlet extends HttpServlet {
                             addTableCell(table, "E-Sewa Kendra:", kendraName);
 
                             for (Map.Entry<String, String> entry : serviceDetails.entrySet()) {
-                                addTableCell(table, formatColumnName(entry.getKey()) + ":", entry.getValue());
+                                if (!entry.getKey().contains("id"))
+                                    addTableCell(table, serviceUtil.formatColumnName(entry.getKey()) + ":",
+                                            entry.getValue());
                             }
 
                             document.add(table);
                             document.close();
                         }
-                        
 
                         // Write the PDF as a byte array
                         byte[] pdfBytes = baos.toByteArray();
@@ -105,7 +108,7 @@ public class GenerateTokenServlet extends HttpServlet {
             }
         } catch (SQLException | ClassNotFoundException e) {
             throw new ServletException("Database error", e);
-        }catch (DocumentException e) {
+        } catch (DocumentException e) {
             throw new ServletException("Error generating PDF", e);
         }
     }
@@ -123,109 +126,4 @@ public class GenerateTokenServlet extends HttpServlet {
         table.addCell(valueCell);
     }
 
-    private Map<String, String> getServiceDetails(Connection conn, String serviceId, int bookingId) throws SQLException {
-        Map<String, String> serviceDetails = new LinkedHashMap<>();
-        String serviceName = getServiceNameById(conn, serviceId);
-        if (serviceName != null) {
-            String tableName = getTableNameForService(serviceName);
-            if (tableName != null) {
-                String query = "SELECT * FROM " + tableName + " WHERE booking_id = ?";
-                try (PreparedStatement serviceStmt = conn.prepareStatement(query)) {
-                    serviceStmt.setInt(1, bookingId);
-
-                    try (ResultSet rs = serviceStmt.executeQuery()) {
-                        if (rs.next()) {
-                            ResultSetMetaData metaData = rs.getMetaData();
-                            int columnCount = metaData.getColumnCount();
-
-                            for (int i = 1; i <= columnCount; i++) {
-                                String columnName = metaData.getColumnName(i);
-                                String value = rs.getString(columnName);
-                                serviceDetails.put(columnName, value);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return serviceDetails;
-    }
-
-    private String formatColumnName(String columnName) {
-        return columnName.replace("_", " ").toLowerCase();
-    }
-
-    private String getServiceNameById(Connection conn, String serviceId) throws SQLException {
-        String serviceName = null;
-        String query = "SELECT name FROM services WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(serviceId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    serviceName = rs.getString("name");
-                }
-            }
-        }
-        return serviceName;
-    }
-
-    private String getTableNameForService(String serviceName) {
-        return serviceName.replace("for", "").replaceAll("\\s+", "_").toLowerCase();
-    }
-
-    private String getStateNameById(Connection conn, String stateId) throws SQLException {
-        String stateName = null;
-        String query = "SELECT name FROM states WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(stateId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    stateName = rs.getString("name");
-                }
-            }
-        }
-        return stateName;
-    }
-
-    private String getDistrictNameById(Connection conn, String districtId) throws SQLException {
-        String districtName = null;
-        String query = "SELECT name FROM districts WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(districtId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    districtName = rs.getString("name");
-                }
-            }
-        }
-        return districtName;
-    }
-
-    private String getCourtComplexNameById(Connection conn, String courtComplexId) throws SQLException {
-        String courtComplexName = null;
-        String query = "SELECT name FROM court_complexes WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(courtComplexId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    courtComplexName = rs.getString("name");
-                }
-            }
-        }
-        return courtComplexName;
-    }
-
-    private String getKendraNameById(Connection conn, String kendraId) throws SQLException {
-        String kendraName = null;
-        String query = "SELECT name FROM sewa_kendras WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(kendraId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    kendraName = rs.getString("name");
-                }
-            }
-        }
-        return kendraName;
-    }
 }

@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
+import com.esewa_kendra.Util.ServiceUtil;
 
 @WebServlet("/checkAvailability")
 public class CheckAvailabilityServlet extends HttpServlet {
@@ -50,14 +51,17 @@ public class CheckAvailabilityServlet extends HttpServlet {
 
                 out.print(jsonResponse.toString());
             } catch (SQLException | ClassNotFoundException e) {
-                e.printStackTrace();
-                out.print("{\"error\":\"Error checking availability.\"}");
+                request.setAttribute("errorMessage", "Error checking availability." + e.getMessage());
+                // request.getRequestDispatcher("/registration.html").forward(request,
+                // response);
+                // e.printStackTrace();
             }
         }
     }
 
     private int getBookingCount(Connection conn, int serviceId, String date, String timeSlot) throws SQLException {
-        String tableName = getTableNameForService(serviceId);
+        ServiceUtil service = new ServiceUtil();
+        String tableName = service.getTableNameForServiceById(serviceId);
         if (tableName == null) {
             return 0;
         }
@@ -74,35 +78,4 @@ public class CheckAvailabilityServlet extends HttpServlet {
         return 0;
     }
 
-    private String getTableNameForService(int serviceId) throws SQLException {
-        String tableName = null;
-        String query = "SELECT name FROM services WHERE id = ?";
-        try (Connection conn = DBConfig.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setInt(1, serviceId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String serviceName = rs.getString("name");
-                switch (serviceName) {
-                    case "Efiling Registration":
-                        tableName = "efiling_registration";
-                        break;
-                    case "Scanning":
-                        tableName = "scanning";
-                        break;
-                    case "Video Conferencing":
-                        tableName = "video_conferencing";
-                        break;
-                    case "Assistance for filing":
-                        tableName = "assistance_filing";
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unknown service: " + serviceName);
-                }
-            }
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return tableName;
-    }
 }
