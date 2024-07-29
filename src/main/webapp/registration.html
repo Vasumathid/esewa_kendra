@@ -6,7 +6,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Service Booking</title>
+  <title>e-Sewa Kendra-Service Booking</title>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <style>
@@ -62,21 +62,7 @@
   <script>
 
     $(document).ready(function () {
-      function handleCaseTypeChange(value) {
-        const newCaseOptions = document.getElementById('newCaseOptions');
-        const oldCaseOptions = document.getElementById('oldCaseOptions');
 
-        if (value === 'newcase') {
-          newCaseOptions.style.display = 'block';
-          oldCaseOptions.style.display = 'none';
-        } else if (value === 'oldcase') {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'block';
-        } else {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'none';
-        }
-      }
       function showLoadingOverlay() {
         $(".loading-overlay").show();
       }
@@ -182,6 +168,21 @@
                 minDate: "today",
                 maxDate: new Date().fp_incr(1),
               });
+              function handleCaseTypeChange(value) {
+                const newCaseOptions = document.getElementById('newCaseOptions');
+                const oldCaseOptions = document.getElementById('oldCaseOptions');
+
+                if (value === 'newcase') {
+                  newCaseOptions.style.display = 'block';
+                  oldCaseOptions.style.display = 'none';
+                } else if (value === 'oldcase') {
+                  newCaseOptions.style.display = 'none';
+                  oldCaseOptions.style.display = 'block';
+                } else {
+                  newCaseOptions.style.display = 'none';
+                  oldCaseOptions.style.display = 'none';
+                }
+              }
             })
             .catch((error) =>
               console.error("Error loading service form:", error)
@@ -305,7 +306,7 @@
     </div>
   </div>
   <div class="container mt-5">
-    <h2 class="mb-4">Book e-Sewa Kendra</h2>
+    <h1 class="mb-4">Book e-Sewa Kendra</h1>
     <div id="error-message">
       <span id="error-text"></span>
     </div>

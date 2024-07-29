@@ -6,7 +6,7 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Service Booking</title>
+  <title>e-Sewa Kendra-Service Booking</title>
 
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <style>
@@ -62,21 +62,7 @@
   <script>
 
     $(document).ready(function () {
-      function handleCaseTypeChange(value) {
-        const newCaseOptions = document.getElementById('newCaseOptions');
-        const oldCaseOptions = document.getElementById('oldCaseOptions');
 
-        if (value === 'newcase') {
-          newCaseOptions.style.display = 'block';
-          oldCaseOptions.style.display = 'none';
-        } else if (value === 'oldcase') {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'block';
-        } else {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'none';
-        }
-      }
       function showLoadingOverlay() {
         $(".loading-overlay").show();
       }
@@ -94,52 +80,29 @@
 
       loadHTML("header.html", "header-placeholder");
       loadHTML("footer.html", "footer-placeholder");
-      function checkAvailability(callback) {
+      function checkAvailability() {
         var serviceId = $("#serviceType").val();
         var date = $("#date").val();
         var timeSlot = $("#time_slot").val();
-        var kendraId = $("#kendra").val();
-        var courtComplexId = $("#courtComplex").val();
 
-        if (serviceId && date && timeSlot && kendraId) {
+        if (serviceId && date && timeSlot) {
           showLoadingOverlay();
           $.get("checkAvailability", {
             serviceId: serviceId,
             date: date,
             timeSlot: timeSlot,
-            kendraId: kendraId,
           })
             .done(function (data) {
-              if (data.available) {
-                callback();
-              } else {
-                // If no slots available, check other Kendras within the same court complex
-                $.get("checkAvailabilityInCourtComplex", {
-                  serviceId: serviceId,
-                  date: date,
-                  timeSlot: timeSlot,
-                  courtComplexId: courtComplexId,
-                })
-                  .done(function (alternativeData) {
-                    if (alternativeData.availableKendras.length > 0) {
-                      var alternativeOptions = '<ul>';
-                      alternativeData.availableKendras.forEach(function (kendra) {
-                        alternativeOptions += `<li>${kendra.name}</li>`;
-                      });
-                      alternativeOptions += '</ul>';
-                      $("#availableKendrasList").html(alternativeOptions);
-                      $("#availableKendrasModal").modal('show');
-                    } else {
-                      alert("No slots available in any Kendra for the selected court complex and time slot.");
-                    }
-                  })
-                  .fail(function (jqXHR, textStatus, errorThrown) {
-                    console.error("Failed to check availability in court complex:", textStatus, errorThrown);
-                  });
-              }
+              alert(
+                data.available ? "Slots available!" : "No slots available."
+              );
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
-              console.error("Failed to check availability:", textStatus, errorThrown);
+              console.error(
+                "Failed to check availability:",
+                textStatus,
+                errorThrown
+              );
             })
             .always(function () {
               hideLoadingOverlay();
@@ -205,10 +168,21 @@
                 minDate: "today",
                 maxDate: new Date().fp_incr(1),
               });
-              flatpickr("#hearing_date", {
-                minDate: "today",
-                maxDate: new Date().fp_incr(1),
-              });
+              function handleCaseTypeChange(value) {
+                const newCaseOptions = document.getElementById('newCaseOptions');
+                const oldCaseOptions = document.getElementById('oldCaseOptions');
+
+                if (value === 'newcase') {
+                  newCaseOptions.style.display = 'block';
+                  oldCaseOptions.style.display = 'none';
+                } else if (value === 'oldcase') {
+                  newCaseOptions.style.display = 'none';
+                  oldCaseOptions.style.display = 'block';
+                } else {
+                  newCaseOptions.style.display = 'none';
+                  oldCaseOptions.style.display = 'none';
+                }
+              }
             })
             .catch((error) =>
               console.error("Error loading service form:", error)
@@ -300,22 +274,6 @@
         hideLoadingOverlay();
       });
 
-      $("#generateToken").click(function (e) {
-        e.preventDefault();
-
-        // Perform form validation
-        var isValid = $("#bookingForm")[0].checkValidity();
-        if (!isValid) {
-          $("#bookingForm")[0].reportValidity();
-          return;
-        }
-
-        // Check availability before generating the token
-        checkAvailability(function () {
-          // Proceed with generating the token
-          $("#bookingForm").submit();
-        });
-      });
       function loadServiceForm(serviceId) {
         $(".loading-overlay").show();
         fetch(`getServices?serviceId=${serviceId}`)
@@ -325,9 +283,6 @@
             $(".loading-overlay").hide();
           });
         flatpickr("#date", {
-          minDate: "today",
-          maxDate: new Date().fp_incr(1),
-        }); flatpickr("#hearing_date", {
           minDate: "today",
           maxDate: new Date().fp_incr(1),
         });
@@ -351,11 +306,11 @@
     </div>
   </div>
   <div class="container mt-5">
-    <h2 class="mb-4">Book e-Sewa Kendra</h2>
-    <!-- <div id="error-message">
+    <h1 class="mb-4">Book e-Sewa Kendra</h1>
+    <div id="error-message">
       <span id="error-text"></span>
-    </div> -->
-    <form action="bookService" id="bookingForm" method="post">
+    </div>
+    <form action="bookService" method="post">
       <div class="form-row mb-3">
         <div class="col-md-3">
           <label for="state" class="required">State:</label>
@@ -436,28 +391,8 @@
       <div id="serviceFormContainer">
         <!-- Dynamic service-specific form will be loaded here -->
       </div>
-      <!-- Modal for available Kendras -->
-      <!-- <div id="availableKendrasModal" class="modal fade" tabindex="-1" role="dialog"
-        aria-labelledby="availableKendrasModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="availableKendrasModalLabel">Available e-Sewa Kendras</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body" id="availableKendrasList">
-              <!-- List of available Kendras will be injected here 
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-      </div> -->
 
-      <button type="submit" id="generateToken" class="btn btn-primary">Generate Token</button>
+      <button type="submit" class="btn btn-primary">Generate Token</button>
     </form>
   </div>
   <div id="footer-placeholder"></div>
