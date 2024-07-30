@@ -25,7 +25,7 @@ public class GetServicesServlet extends HttpServlet {
         if (serviceIdParam != null) {
             try (Connection conn = DBConfig.getConnection()) {
                 int serviceId = Integer.parseInt(serviceIdParam);
-                String query = "SELECT column_name, data_type FROM service_columns WHERE service_id = ?";
+                String query = "SELECT column_name, data_type, isRequired FROM service_columns WHERE service_id = ?";
                 PreparedStatement pstmt = conn.prepareStatement(query);
                 pstmt.setInt(1, serviceId);
                 ResultSet rs = pstmt.executeQuery();
@@ -34,24 +34,30 @@ public class GetServicesServlet extends HttpServlet {
                     String columnName = rs.getString("column_name");
                     String formattedColumnString = formatColumnName(columnName);
                     String dataType = rs.getString("data_type");
+                    boolean isRequired = rs.getBoolean("isRequired");
+
+                    String requiredAttribute = isRequired ? "required" : "";
+                    String requiredClass = isRequired ? " class='required'" : "";
 
                     if (!columnName.equals("booking_id")) {
                         out.print("<div class='form-row mb-3'>");
                         out.print("<div class='col-md-4'>");
-                        out.print("<label for='" + columnName + "' class='required'>" + formattedColumnString
+                        out.print("<label for='" + columnName + "'" + requiredClass + ">" + formattedColumnString
                                 + ":</label>");
                         out.print("</div>");
                         out.print("<div class='col-md-8'>");
 
                         if (columnName.equals("case_type")) {
                             out.print(
-                                    "<select name='case_type' id='case_type' class='form-control' required onchange='handleCaseTypeChange(this.value)'>"
+                                    "<select name='case_type' id='case_type' class='form-control' " + requiredAttribute
+                                            + " onchange='handleCaseTypeChange(this.value)'>"
                                             + "<option value=''>Select Case Type</option>"
                                             + "<option value='newcase'>New Case</option>"
                                             + "<option value='oldcase'>Old Case</option>"
                                             + "</select>"
                                             + "<div id='newCaseOptions' style='display:none;'>"
-                                            + "<label for='civil_or_criminal' class='required'>Civil/Criminal:</label>"
+                                            + "<label for='civil_or_criminal' class='" + (isRequired ? "required" : "")
+                                            + "'>Civil/Criminal:</label>"
                                             + "<div class='form-check'>"
                                             + "<input type='radio' name='civil_or_criminal' id='civil' value='true' class='form-check-input' />"
                                             + "<label for='civil' class='form-check-label'>Civil</label>"
@@ -62,7 +68,8 @@ public class GetServicesServlet extends HttpServlet {
                                             + "</div>"
                                             + "</div>"
                                             + "<div id='oldCaseOptions' style='display:none;'>"
-                                            + "<label for='cnr_number' class='required'>CNR Number:</label>"
+                                            + "<label for='cnr_number' class='" + (isRequired ? "required" : "")
+                                            + "'>CNR Number:</label>"
                                             + "<input type='text' name='cnr_number' id='cnr_number' class='form-control' />"
                                             + "</div>");
                         } else if (columnName.equals("civil_or_criminal")) {
@@ -75,7 +82,8 @@ public class GetServicesServlet extends HttpServlet {
                                     + "<label for='criminal' class='form-check-label'>Criminal</label>"
                                     + "</div>");
                         } else if (columnName.equals("time_slot")) {
-                            out.print("<select name='time_slot' id='time_slot' class='form-control' required>"
+                            out.print("<select name='time_slot' id='time_slot' class='form-control' "
+                                    + requiredAttribute + ">"
                                     + "<option value=''>Select Time Slot</option>"
                                     + "<option value='Forenoon'>Forenoon</option>"
                                     + "<option value='Afternoon'>Afternoon</option>"
@@ -84,23 +92,23 @@ public class GetServicesServlet extends HttpServlet {
                             switch (dataType) {
                                 case "VARCHAR":
                                     out.print("<input type='text' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' required />");
+                                            + "' class='form-control' " + requiredAttribute + " />");
                                     break;
                                 case "INT":
                                     out.print("<input type='number' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' required />");
+                                            + "' class='form-control' " + requiredAttribute + " />");
                                     break;
                                 case "DATE":
                                     out.print("<input type='date' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' required />");
+                                            + "' class='form-control' " + requiredAttribute + " />");
                                     break;
                                 case "DECIMAL":
                                     out.print("<input type='number' step='0.01' name='" + columnName + "' id='"
-                                            + columnName + "' class='form-control' required />");
+                                            + columnName + "' class='form-control' " + requiredAttribute + " />");
                                     break;
                                 default:
                                     out.print("<input type='text' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' required />");
+                                            + "' class='form-control' " + requiredAttribute + " />");
                                     break;
                             }
                         }
@@ -118,13 +126,13 @@ public class GetServicesServlet extends HttpServlet {
 
     public static String formatColumnName(String columnName) {
         String[] words = columnName.split("_");
-        String formattedName = "";
+        StringBuilder formattedName = new StringBuilder();
         for (String word : words) {
             if (!word.isEmpty()) {
                 String capitalizedWord = word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
-                formattedName += capitalizedWord + " ";
+                formattedName.append(capitalizedWord).append(" ");
             }
         }
-        return formattedName.trim();
+        return formattedName.toString().trim();
     }
 }

@@ -6,9 +6,7 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import jakarta.servlet.ServletException;
@@ -17,6 +15,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
@@ -67,17 +66,26 @@ public class GenerateTokenServlet extends HttpServlet {
                             document.open();
 
                             // Add header
-                            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
+                            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
                             Paragraph header = new Paragraph("High Court of Madras\n", headerFont);
                             header.setAlignment(Element.ALIGN_CENTER);
                             document.add(header);
 
+                            Font subHeaderFont = FontFactory.getFont(FontFactory.HELVETICA, 14);
+                            Paragraph subHeader = new Paragraph("E-Sewa Kendra Token\n", subHeaderFont);
+                            subHeader.setAlignment(Element.ALIGN_CENTER);
+                            document.add(subHeader);
+
+                            // Add a line separator
+                            Paragraph separator = new Paragraph("___________________________________________\n");
+                            separator.setAlignment(Element.ALIGN_CENTER);
+                            document.add(separator);
+
                             // Add booking details table
-                            document.add(new Paragraph("\n"));
                             PdfPTable table = new PdfPTable(2);
                             table.setWidthPercentage(100);
-                            table.setSpacingBefore(10f);
-                            table.setSpacingAfter(10f);
+                            table.setSpacingBefore(20f);
+                            table.setSpacingAfter(20f);
 
                             addTableCell(table, "Token Number:", tokenNumber);
                             addTableCell(table, "State:", stateName);
@@ -86,12 +94,21 @@ public class GenerateTokenServlet extends HttpServlet {
                             addTableCell(table, "E-Sewa Kendra:", kendraName);
 
                             for (Map.Entry<String, String> entry : serviceDetails.entrySet()) {
-                                if (!entry.getKey().contains("id"))
+                                if (!entry.getKey().contains("id")) {
                                     addTableCell(table, serviceUtil.formatColumnName(entry.getKey()) + ":",
                                             entry.getValue());
+                                }
                             }
 
                             document.add(table);
+
+                            // Add footer
+                            Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
+                            Paragraph footer = new Paragraph("Please arrive 15 minutes before your scheduled time.\n",
+                                    footerFont);
+                            footer.setAlignment(Element.ALIGN_CENTER);
+                            document.add(footer);
+
                             document.close();
                         }
 
@@ -118,12 +135,13 @@ public class GenerateTokenServlet extends HttpServlet {
         Font valueFont = FontFactory.getFont(FontFactory.HELVETICA, 12);
 
         PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));
-        labelCell.setBorder(PdfPCell.NO_BORDER);
+        labelCell.setBorderColor(BaseColor.LIGHT_GRAY);
+        labelCell.setPadding(5);
         table.addCell(labelCell);
 
         PdfPCell valueCell = new PdfPCell(new Phrase(value, valueFont));
-        valueCell.setBorder(PdfPCell.NO_BORDER);
+        valueCell.setBorderColor(BaseColor.LIGHT_GRAY);
+        valueCell.setPadding(5);
         table.addCell(valueCell);
     }
-
 }

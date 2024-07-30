@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import com.google.gson.Gson;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -37,6 +38,15 @@ public class BookServiceServlet extends HttpServlet {
         String email = request.getParameter("email");
         String status = "Confirmed";
         String tokenNumber = UUID.randomUUID().toString(); // Generate unique token number
+
+        Map<String, String> validationErrors = validateRequiredFields(request, serviceId);
+
+        if (!validationErrors.isEmpty()) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson().toJson(validationErrors));
+            return;
+        }
 
         try (Connection conn = DBConfig.getConnection()) {
             conn.setAutoCommit(false);
@@ -76,6 +86,30 @@ public class BookServiceServlet extends HttpServlet {
         }
 
         response.sendRedirect("generateToken?token=" + tokenNumber);
+    }
+
+    private Map<String, String> validateRequiredFields(HttpServletRequest request, String serviceId) {
+        Map<String, String> errors = new HashMap<>();
+
+        try (Connection conn = DBConfig.getConnection()) {
+            String query = "SELECT column_name FROM service_columns WHERE service_id = ? AND is_required = true";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, Integer.parseInt(serviceId));
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String columnName = rs.getString("column_name");
+                        String value = request.getParameter(columnName);
+                        if (value == null || value.trim().isEmpty()) {
+                            errors.put(columnName, columnName + " is required.");
+                        }
+                    }
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return errors;
     }
 
     private void insertServiceDetails(Connection conn, String serviceId, int bookingId, HttpServletRequest request)
