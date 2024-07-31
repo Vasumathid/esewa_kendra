@@ -100,7 +100,7 @@ public class GetServicesServlet extends HttpServlet {
                                     break;
                                 case "DATE":
                                     out.print("<input type='date' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' " + requiredAttribute + " />");
+                                            + "' class='form-control date-Picker' " + requiredAttribute + " />");
                                     break;
                                 case "DECIMAL":
                                     out.print("<input type='number' step='0.01' name='" + columnName + "' id='"

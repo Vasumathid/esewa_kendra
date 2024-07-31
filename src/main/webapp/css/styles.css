@@ -3677,3 +3677,9 @@ h1.display-4.title {
     padding: 10px;
     margin-bottom: 10px;
 }
+#iframeContainer {
+    width: 100%;
+    height: 500px;
+    border: 1px solid #ccc;
+    /* Optional: style the container */
+}

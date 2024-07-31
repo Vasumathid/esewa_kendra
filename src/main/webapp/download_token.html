@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Download Token</title>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function loadHTML(url, elementId) {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById(elementId).innerHTML = data;
+                });
+        }
+
+        loadHTML("header.html", "header-placeholder");
+        loadHTML("footer.html", "footer-placeholder");
+
+        // Handle navigation to PDF and back to modify_cancel.html
+        function generateToken(event) {
+            event.preventDefault();
+            const tokenNumber = document.getElementById("token").value;
+            const contextPath = "/esewa_kendra";
+
+            if (tokenNumber) {
+
+                const url = `${contextPath}/generateToken?token=${tokenNumber}`;
+                // Create an iframe element
+                const iframe = document.createElement("iframe");
+                iframe.style.width = "100%";
+                iframe.style.height = "500px"; // Adjust height as needed
+                iframe.src = url;
+
+                // Add the iframe to the document
+                const iframeContainer = document.getElementById("iframeContainer");
+                iframeContainer.innerHTML = ""; // Clear any existing iframes or content
+                iframeContainer.appendChild(iframe);
+            } else {
+                alert("Please enter a token number");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("generateTokenForm").addEventListener("submit", generateToken);
+        });
+    </script>
+    <style>
+        .jumbotron.mt-5 {
+            text-align: center;
+        }
+
+        .mt-4 {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header-placeholder"></div>
+    <div class="container">
+        <div class="box">
+            <h1 class="display-4 title">Download Token</h1>
+            <p class="lead">
+                Please enter your token number to download Token.
+            </p>
+            <hr class="my-4" />
+        </div>
+        <div class="mt-4">
+            <form id="generateTokenForm">
+                <div id="iframeContainer"></div>
+                <label for="token">Enter Token Number:</label>
+                <input type="text" id="token" name="token" required>
+                <button type="submit" class="btn btn-primary btn-lg button-spacing">Generate PDF</button>
+            </form>
+        </div>
+    </div>
+    <div id="footer-placeholder"></div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
+</html>

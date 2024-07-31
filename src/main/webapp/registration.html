@@ -164,9 +164,10 @@
                 checkAvailability();
               });
 
-              flatpickr("#date", {
+              flatpickr(".date-Picker", {
                 minDate: "today",
                 maxDate: new Date().fp_incr(1),
+                defaultDate: new Date()
               });
               function handleCaseTypeChange(value) {
                 const newCaseOptions = document.getElementById('newCaseOptions');
