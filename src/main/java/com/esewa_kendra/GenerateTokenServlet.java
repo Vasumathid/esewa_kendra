@@ -34,18 +34,42 @@ public class GenerateTokenServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String tokenNumber = request.getParameter("token");
+        String advocateName = request.getParameter("advocateName");
+        String phoneNumber = request.getParameter("phoneNumber");
+
+        // Determine which parameter to use for querying
+        String queryParam = (tokenNumber != null && !tokenNumber.isEmpty()) ? tokenNumber
+                : (advocateName != null && !advocateName.isEmpty()) ? advocateName
+                        : (phoneNumber != null && !phoneNumber.isEmpty()) ? phoneNumber
+                                : null;
+
+        if (queryParam == null) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "No valid parameter provided");
+            return;
+        }
+
         ServiceUtil serviceUtil = new ServiceUtil();
         try (Connection conn = DBConfig.getConnection()) {
-            String bookingQuery = "SELECT * FROM bookings WHERE token_number = ? and status='Confirmed'";
+            String bookingQuery = "SELECT * FROM bookings WHERE "
+                    + "(token_number = ? OR advocate_name = ? OR phone_number = ?) "
+                    + "AND status = 'Confirmed' "
+                    + "AND EXISTS (SELECT 1 FROM efiling_registration WHERE booking_id = bookings.id AND date = CAST(GETDATE() AS DATE))";
+
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery)) {
                 bookingStmt.setString(1, tokenNumber);
+                bookingStmt.setString(2, advocateName);
+                bookingStmt.setString(3, phoneNumber);
+
                 try (ResultSet rs = bookingStmt.executeQuery()) {
                     if (rs.next()) {
+
                         String serviceId = rs.getString("service_id");
                         String stateId = rs.getString("state_id");
                         String districtId = rs.getString("district_id");
                         String courtComplexId = rs.getString("court_complex_id");
                         String kendraId = rs.getString("kendra_id");
+                        String advocateNameString = rs.getString("advocate_name");
+                        String tokenNumbeString = rs.getString("token_number");
 
                         // Retrieve service-specific details
                         Map<String, String> serviceDetails = serviceUtil.getServiceDetails(conn, serviceId,
@@ -87,7 +111,8 @@ public class GenerateTokenServlet extends HttpServlet {
                             table.setSpacingBefore(20f);
                             table.setSpacingAfter(20f);
 
-                            addTableCell(table, "Token Number:", tokenNumber);
+                            addTableCell(table, "Token Number:", tokenNumbeString);
+                            addTableCell(table, "Name", advocateNameString);
                             addTableCell(table, "State:", stateName);
                             addTableCell(table, "District:", districtName);
                             addTableCell(table, "Court Complex:", courtComplexName);

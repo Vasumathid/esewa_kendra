@@ -3683,3 +3683,14 @@ h1.display-4.title {
     border: 1px solid #ccc;
     /* Optional: style the container */
 }
+.leftalign{
+    align-items: flex-start;
+}
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
