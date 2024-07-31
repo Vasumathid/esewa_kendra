@@ -319,7 +319,7 @@
 
         var email = $("#email").val();
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (email != '' && !emailRegex.test(email)) {
           isValid = false;
           errors.push("Email Address is not valid.");
         }
