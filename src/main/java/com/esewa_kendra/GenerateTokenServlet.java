@@ -36,7 +36,7 @@ public class GenerateTokenServlet extends HttpServlet {
         String tokenNumber = request.getParameter("token");
         ServiceUtil serviceUtil = new ServiceUtil();
         try (Connection conn = DBConfig.getConnection()) {
-            String bookingQuery = "SELECT * FROM bookings WHERE token_number = ?";
+            String bookingQuery = "SELECT * FROM bookings WHERE token_number = ? and status='Confirmed'";
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery)) {
                 bookingStmt.setString(1, tokenNumber);
                 try (ResultSet rs = bookingStmt.executeQuery()) {
