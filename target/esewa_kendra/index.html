@@ -1,58 +1,55 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>E-Sewa Kendra</title>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script>
-      function loadHTML(url, elementId) {
-        fetch(url)
-          .then((response) => response.text())
-          .then((data) => {
-            document.getElementById(elementId).innerHTML = data;
-          });
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>E-Sewa Kendra</title>
 
-      loadHTML("header.html", "header-placeholder");
-      loadHTML("footer.html", "footer-placeholder");
-    </script>
-    <style>
-      .jumbotron.mt-5 {
-        text-align: center;
-      }
-      .mt-4 {
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="header-placeholder"></div>
-    <div class="container">
-      <div class="box">
-        <h1 class="display-4 title">Welcome to E-Sewa Kendra</h1>
-        <p class="lead">
-          Providing efficient e-filing and case management services.
-        </p>
-        <hr class="my-4" />
-        <p>Select a service to get started.</p>
-      </div>
-      <div class="mt-4">
-        <a
-          href="registration.html"
-          class="btn btn-primary btn-lg button-spacing"
-          >Book E-Sewa</a
-        >
-        <a
-          href="modify_cancel.jsp"
-          class="btn btn-primary btn-lg button-spacing"
-          >Modify/Cancel Booking</a
-        >
-      </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script>
+    function loadHTML(url, elementId) {
+      fetch(url)
+        .then((response) => response.text())
+        .then((data) => {
+          document.getElementById(elementId).innerHTML = data;
+        });
+    }
+
+    loadHTML("header.html", "header-placeholder");
+    loadHTML("footer.html", "footer-placeholder");
+  </script>
+  <style>
+    .jumbotron.mt-5 {
+      text-align: center;
+    }
+
+    .mt-4 {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header-placeholder"></div>
+  <div class="container">
+    <div class="box">
+      <h1 class="display-4 title">Welcome to E-Sewa Kendra</h1>
+      <p class="lead">
+        Providing efficient e-filing and case management services.
+      </p>
+      <hr class="my-4" />
+      <p>Select a service to get started.</p>
     </div>
-    <div id="footer-placeholder"></div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-  </body>
+    <div class="mt-4">
+      <a href="registration.html" class="btn btn-primary btn-lg button-spacing">Book E-Sewa</a>
+      <a href="modify_cancel.html" class="btn btn-primary btn-lg button-spacing">Modify/Cancel Booking</a>
+      <a href="download_token.html" class="btn btn-primary btn-lg button-spacing">Download Token</a>
+    </div>
+  </div>
+  <div id="footer-placeholder"></div>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+
 </html>

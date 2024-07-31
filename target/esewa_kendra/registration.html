@@ -164,9 +164,10 @@
                 checkAvailability();
               });
 
-              flatpickr("#date", {
+              flatpickr(".date-Picker", {
                 minDate: "today",
                 maxDate: new Date().fp_incr(1),
+                defaultDate: new Date()
               });
               function handleCaseTypeChange(value) {
                 const newCaseOptions = document.getElementById('newCaseOptions');
@@ -287,7 +288,88 @@
           maxDate: new Date().fp_incr(1),
         });
       }
+
+      function showError(message) {
+        $("#error-message").text(message).show();
+      }
+
+      function hideError() {
+        $("#error-message").hide();
+      }
+
+      function validateForm() {
+        var isValid = true;
+        var errors = [];
+
+        // Clear previous errors
+        hideError();
+
+        // Example validation
+        var advocateName = $("#advocateName").val();
+        if (advocateName.length < 2 || advocateName.length > 100) {
+          isValid = false;
+          errors.push("Advocate Name must be between 2 and 100 characters.");
+        }
+
+        var phoneNumber = $("#phoneNumber").val();
+        var phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(phoneNumber)) {
+          isValid = false;
+          errors.push("Phone Number must be 10 digits.");
+        }
+
+        var email = $("#email").val();
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (email != '' && !emailRegex.test(email)) {
+          isValid = false;
+          errors.push("Email Address is not valid.");
+        }
+
+        // Validate that dropdowns are not default
+        var state = $("#state").val();
+        if (state === "") {
+          isValid = false;
+          errors.push("Please select a State.");
+        }
+
+        var district = $("#district").val();
+        if (district === "") {
+          isValid = false;
+          errors.push("Please select a District.");
+        }
+
+        var courtComplex = $("#courtComplex").val();
+        if (courtComplex === "") {
+          isValid = false;
+          errors.push("Please select a Court Complex.");
+        }
+
+        var kendra = $("#kendra").val();
+        if (kendra === "") {
+          isValid = false;
+          errors.push("Please select an e-Sewa Kendra.");
+        }
+
+        var serviceType = $("#serviceType").val();
+        if (serviceType === "") {
+          isValid = false;
+          errors.push("Please select a Service Type.");
+        }
+
+        if (!isValid) {
+          showError(errors.join("\n"));
+        }
+
+        return isValid;
+      }
+
+      $("form").on("submit", function (event) {
+        if (!validateForm()) {
+          event.preventDefault(); // Prevent form submission
+        }
+      });
     });
+
     // window.onload = function () {
     //   var errorMessage = '<%= request.getAttribute("errorMessage") %>';
     //   if (errorMessage) {
