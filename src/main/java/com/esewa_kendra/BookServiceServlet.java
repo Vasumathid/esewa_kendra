@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import com.google.gson.Gson;
-
+import java.time.Instant;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,7 +26,7 @@ public class BookServiceServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        ServiceUtil serviceUtil = new ServiceUtil();
         String stateId = request.getParameter("state");
         String districtId = request.getParameter("district");
         String courtComplexId = request.getParameter("courtComplex");
@@ -37,8 +37,7 @@ public class BookServiceServlet extends HttpServlet {
         String phoneNumber = request.getParameter("phoneNumber");
         String email = request.getParameter("email");
         String status = "Confirmed";
-        String tokenNumber = UUID.randomUUID().toString(); // Generate unique token number
-
+        String tokenNumber = null;
         Map<String, String> validationErrors = validateRequiredFields(request, serviceId);
 
         if (!validationErrors.isEmpty()) {
@@ -50,6 +49,13 @@ public class BookServiceServlet extends HttpServlet {
 
         try (Connection conn = DBConfig.getConnection()) {
             conn.setAutoCommit(false);
+
+            // Format the token number
+            String statePrefix = (serviceUtil.getStateNameById(conn, stateId)).substring(0, 2).toUpperCase();
+            String districtPrefix = (serviceUtil.getDistrictNameById(conn, districtId)).substring(0, 3).toUpperCase();
+            long timestamp = Instant.now().toEpochMilli(); // Get current time in milliseconds
+
+            tokenNumber = statePrefix + districtPrefix + timestamp;
 
             // Insert booking details
             String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, enrollment_number, phone_number, email, status, token_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
