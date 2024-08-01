@@ -357,7 +357,9 @@
           isValid = false;
           errors.push("Please select a Service Type.");
         }
-
+        if (!checkAvailability) {
+          errors.push("No Slot available! Please change the Date or TimeSlot")
+        }
         if (!isValid) {
           showError(errors.join("\n"));
         }
@@ -366,7 +368,7 @@
       }
 
       $("form").on("submit", function (event) {
-        if (!validateForm() && !checkAvailability) {
+        if (!validateForm()) {
           event.preventDefault(); // Prevent form submission
         }
       });
@@ -447,10 +449,11 @@
       <br />
       <div class="form-row mb-3">
         <div class="col-md-4">
-          <label for="enrollmentNumber">Enrollment Number:</label>
+          <label for="enrollmentNumber">Enrollment Number:[MS/XXXX/YYYY]</label>
         </div>
         <div class="col-md-8">
-          <input type="text" name="enrollmentNumber" id="enrollmentNumber" class="form-control" />
+          <input type="text" name="enrollmentNumber" id="enrollmentNumber" class="form-control"
+            placeholder="State Code/Bar Code/Bar Year" />
         </div>
       </div>
       <br />

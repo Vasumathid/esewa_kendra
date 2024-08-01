@@ -12,7 +12,6 @@
                 transform: scale(1);
             }
 
-
             50% {
                 transform: scale(1.5);
             }
@@ -33,7 +32,6 @@
             text-align: center;
             z-index: 9999;
             display: none;
-            /* Ensure the overlay is hidden initially */
             align-items: center;
             justify-content: center;
         }
@@ -41,6 +39,11 @@
         .loading-overlay .spinner {
             font-size: 2rem;
             animation: zoom 1.5s ease-in-out infinite;
+        }
+
+        .error-message {
+            color: red;
+            display: none;
         }
     </style>
     <script>
@@ -67,33 +70,43 @@
             function generateToken(event) {
                 event.preventDefault();
                 const tokenNumber = document.getElementById("token").value;
+                const advocateName = document.getElementById("advocateName").value;
+                const phoneNumber = document.getElementById("phoneNumber").value;
                 const contextPath = "/esewa_kendra";
 
+                let url = `${contextPath}/generateToken?`;
                 if (tokenNumber) {
-                    const url = `${contextPath}/generateToken?token=${tokenNumber}`;
-                    showLoadingOverlay();
-                    let iframe = document.getElementById("pdfIframe");
-                    if (!iframe) {
-                        iframe = document.createElement("iframe");
-                        iframe.id = "pdfIframe";
-                        iframe.style.width = "100%";
-                        iframe.style.height = "500px"; // Adjust height as needed
-                        document.getElementById("iframeContainer").appendChild(iframe);
-                    }
-                    iframe.src = url;
-                    iframe.style.display = "block";
-
-                    // Hide loading overlay when iframe is loaded
-                    iframe.onload = function () {
-                        hideLoadingOverlay();
-                    };
+                    url += `token=${tokenNumber}`;
+                } else if (advocateName) {
+                    url += `advocateName=${advocateName}`;
+                } else if (phoneNumber) {
+                    url += `phoneNumber=${phoneNumber}`;
                 } else {
-                    alert("Please enter a token number");
-                    const iframe = document.getElementById("pdfIframe");
-                    if (iframe) {
-                        iframe.style.display = "none";
-                    }
+                    alert("Please enter a token number, advocate name, or phone number");
+                    return;
                 }
+
+                showLoadingOverlay();
+                let iframe = document.getElementById("pdfIframe");
+                if (!iframe) {
+                    iframe = document.createElement("iframe");
+                    iframe.id = "pdfIframe";
+                    iframe.style.width = "100%";
+                    iframe.style.height = "500px"; // Adjust height as needed
+                    document.getElementById("iframeContainer").appendChild(iframe);
+                }
+                iframe.src = url;
+                iframe.style.display = "block";
+
+                // Hide loading overlay and handle no results
+                iframe.onload = function () {
+                    hideLoadingOverlay();
+                };
+                iframe.onerror = function () {
+                    hideLoadingOverlay();
+                    document.getElementById("iframeContainer").style.display = "none";
+                    alert("Invalid token, advocate name, or phone number");
+                };
             }
 
             document.getElementById("generateTokenForm").addEventListener("submit", generateToken);
@@ -108,21 +121,32 @@
             <i class="fa fa-spinner fa-spin"></i> Loading...
         </div>
     </div>
-    <div class="container">
-        <div class="box">
-            <h1 class="display-4 title">Download Token</h1>
-            <p class="lead">
-                Please enter your token number
-            </p>
-            <hr class="my-4" />
-            <form id="generateTokenForm">
-                <label for="token">Enter Token Number:</label>
-                <input type="text" id="token" name="token" required>
-                <button type="submit" class="btn btn-primary btn-lg button-spacing">View</button>
-            </form>
-        </div>
-        <div id="iframeContainer"></div>
+    <div class="container mt-5">
+        <h1 class="mb-4">Download Token</h1>
+        <form id="generateTokenForm" class="leftalign">
+            <div class="form-row mb-3">
+                <div class="col-md-12">
+                    <label for="token">Enter Token Number:</label>
+                    <input type="text" id="token" name="token" class="form-control">
+                </div>
+            </div>
+            <div class="form-row mb-3">
+                <div class="col-md-12">
+                    <label for="advocateName">Enter Advocate Name:</label>
+                    <input type="text" id="advocateName" name="advocateName" class="form-control">
+                </div>
+            </div>
+            <div class="form-row mb-3">
+                <div class="col-md-12">
+                    <label for="phoneNumber">Enter Phone Number:</label>
+                    <input type="text" id="phoneNumber" name="phoneNumber" class="form-control">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">View</button>
+        </form>
+        <div id="iframeContainer" class="mt-4"></div>
     </div>
+
     <div id="footer-placeholder"></div>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
