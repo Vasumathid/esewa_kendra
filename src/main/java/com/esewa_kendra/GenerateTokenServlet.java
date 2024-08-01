@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -70,6 +72,12 @@ public class GenerateTokenServlet extends HttpServlet {
                         String kendraId = rs.getString("kendra_id");
                         String advocateNameString = rs.getString("advocate_name");
                         String tokenNumbeString = rs.getString("token_number");
+                        Timestamp bookingTime = rs.getTimestamp("booking_time");
+                        String bookingTimeString = null;
+                        if (bookingTime != null) {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            bookingTimeString = sdf.format(bookingTime);
+                        }
 
                         // Retrieve service-specific details
                         Map<String, String> serviceDetails = serviceUtil.getServiceDetails(conn, serviceId,
@@ -112,6 +120,7 @@ public class GenerateTokenServlet extends HttpServlet {
                             table.setSpacingAfter(20f);
 
                             addTableCell(table, "Token Number:", tokenNumbeString);
+                            addTableCell(table, "Booking Time", bookingTimeString);
                             addTableCell(table, "Name", advocateNameString);
                             addTableCell(table, "State:", stateName);
                             addTableCell(table, "District:", districtName);

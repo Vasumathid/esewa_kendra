@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.UUID;
 import com.google.gson.Gson;
 import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -58,7 +60,7 @@ public class BookServiceServlet extends HttpServlet {
             tokenNumber = statePrefix + districtPrefix + timestamp;
 
             // Insert booking details
-            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, enrollment_number, phone_number, email, status, token_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, enrollment_number, phone_number, email, status, token_number,booking_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery, Statement.RETURN_GENERATED_KEYS)) {
                 bookingStmt.setInt(1, Integer.parseInt(stateId));
                 bookingStmt.setInt(2, Integer.parseInt(districtId));
@@ -71,6 +73,7 @@ public class BookServiceServlet extends HttpServlet {
                 bookingStmt.setString(9, email);
                 bookingStmt.setString(10, status);
                 bookingStmt.setString(11, tokenNumber);
+                bookingStmt.setTimestamp(12, Timestamp.valueOf(LocalDateTime.now()));
                 bookingStmt.executeUpdate();
 
                 try (ResultSet rs = bookingStmt.getGeneratedKeys()) {
