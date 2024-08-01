@@ -26,6 +26,8 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.Rectangle;
+
 import com.esewa_kendra.Util.ServiceUtil;
 
 @WebServlet("/generateToken")
@@ -62,7 +64,6 @@ public class GenerateTokenServlet extends HttpServlet {
 
                 try (ResultSet rs = bookingStmt.executeQuery()) {
                     if (rs.next()) {
-
                         String serviceId = rs.getString("service_id");
                         String stateId = rs.getString("state_id");
                         String districtId = rs.getString("district_id");
@@ -71,7 +72,6 @@ public class GenerateTokenServlet extends HttpServlet {
                         String advocateNameString = rs.getString("advocate_name");
                         String tokenNumbeString = rs.getString("token_number");
 
-                        // Retrieve service-specific details
                         Map<String, String> serviceDetails = serviceUtil.getServiceDetails(conn, serviceId,
                                 rs.getInt("id"));
                         String stateName = serviceUtil.getStateNameById(conn, stateId);
@@ -79,17 +79,14 @@ public class GenerateTokenServlet extends HttpServlet {
                         String courtComplexName = serviceUtil.getCourtComplexNameById(conn, courtComplexId);
                         String kendraName = serviceUtil.getKendraNameById(conn, kendraId);
 
-                        // Set response content type to PDF
                         response.setContentType("application/pdf");
 
-                        // Create PDF
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         try (OutputStream out = baos) {
                             Document document = new Document();
                             PdfWriter.getInstance(document, out);
                             document.open();
 
-                            // Add header
                             Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
                             Paragraph header = new Paragraph("High Court of Madras\n", headerFont);
                             header.setAlignment(Element.ALIGN_CENTER);
@@ -100,12 +97,10 @@ public class GenerateTokenServlet extends HttpServlet {
                             subHeader.setAlignment(Element.ALIGN_CENTER);
                             document.add(subHeader);
 
-                            // Add a line separator
                             Paragraph separator = new Paragraph("___________________________________________\n");
                             separator.setAlignment(Element.ALIGN_CENTER);
                             document.add(separator);
 
-                            // Add booking details table
                             PdfPTable table = new PdfPTable(2);
                             table.setWidthPercentage(100);
                             table.setSpacingBefore(20f);
@@ -135,23 +130,29 @@ public class GenerateTokenServlet extends HttpServlet {
                             document.add(footer);
 
                             document.close();
-                        }
 
-                        // Write the PDF as a byte array
-                        byte[] pdfBytes = baos.toByteArray();
-                        response.setContentLength(pdfBytes.length);
-                        try (OutputStream out = response.getOutputStream()) {
-                            out.write(pdfBytes);
+                            response.setHeader("Content-Disposition", "inline; filename=token.pdf");
+                            response.setContentLength(baos.size());
+
+                            try (OutputStream outputStream = response.getOutputStream()) {
+                                baos.writeTo(outputStream);
+                                outputStream.flush();
+                            }
                         }
                     } else {
-                        response.sendError(HttpServletResponse.SC_NOT_FOUND, "Token not found");
+                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                        response.getWriter().write("{\"error\": \"Token not found\"}");
                     }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.getWriter().write("{\"error\": \"Internal server error\"}");
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            throw new ServletException("Database error", e);
-        } catch (DocumentException e) {
-            throw new ServletException("Error generating PDF", e);
+        } catch (SQLException | DocumentException | ClassNotFoundException e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"error\": \"Internal server error\"}");
         }
     }
 
