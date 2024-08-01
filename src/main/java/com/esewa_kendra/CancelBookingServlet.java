@@ -22,7 +22,7 @@ public class CancelBookingServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
 
         try (Connection conn = DBConfig.getConnection()) {
-            String sql = "UPDATE bookings SET status = 'Cancelled' WHERE token_number = ?";
+            String sql = "UPDATE bookings SET status = 'Cancelled' WHERE token_number = ? AND status <> 'Cancelled'";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, tokenNumber);
                 int rowsUpdated = pstmt.executeUpdate();
