@@ -70,7 +70,7 @@ public class GetServicesServlet extends HttpServlet {
                                             + "<div id='oldCaseOptions' style='display:none;'>"
                                             + "<label for='cnr_number' class='" + (isRequired ? "required" : "")
                                             + "'>CNR Number:</label>"
-                                            + "<input type='text' name='cnr_number' id='cnr_number' class='form-control' />"
+                                            + "<input type='text' name='cnr_number' id='cnr_number' class='form-control' placeholder='Enter CNR Number' />"
                                             + "</div>");
                         } else if (columnName.equals("civil_or_criminal")) {
                             out.print("<div class='form-check'>"
@@ -89,26 +89,32 @@ public class GetServicesServlet extends HttpServlet {
                                     + "<option value='Afternoon'>Afternoon</option>"
                                     + "</select>");
                         } else {
+                            String placeholder = "Enter " + formattedColumnString;
                             switch (dataType) {
                                 case "VARCHAR":
                                     out.print("<input type='text' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' " + requiredAttribute + " />");
+                                            + "' class='form-control' placeholder='" + placeholder + "' "
+                                            + requiredAttribute + " />");
                                     break;
                                 case "INT":
                                     out.print("<input type='number' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' " + requiredAttribute + " />");
+                                            + "' class='form-control' placeholder='" + placeholder + "' "
+                                            + requiredAttribute + " />");
                                     break;
                                 case "DATE":
                                     out.print("<input type='date' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control date-Picker' " + requiredAttribute + " />");
+                                            + "' class='form-control date-Picker' placeholder='" + placeholder + "' "
+                                            + requiredAttribute + " />");
                                     break;
                                 case "DECIMAL":
                                     out.print("<input type='number' step='0.01' name='" + columnName + "' id='"
-                                            + columnName + "' class='form-control' " + requiredAttribute + " />");
+                                            + columnName + "' class='form-control' placeholder='" + placeholder + "' "
+                                            + requiredAttribute + " />");
                                     break;
                                 default:
                                     out.print("<input type='text' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control' " + requiredAttribute + " />");
+                                            + "' class='form-control' placeholder='" + placeholder + "' "
+                                            + requiredAttribute + " />");
                                     break;
                             }
                         }
