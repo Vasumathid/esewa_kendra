@@ -26,8 +26,6 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import com.itextpdf.text.Rectangle;
-
 import com.esewa_kendra.Util.ServiceUtil;
 
 @WebServlet("/generateToken")
@@ -64,6 +62,7 @@ public class GenerateTokenServlet extends HttpServlet {
 
                 try (ResultSet rs = bookingStmt.executeQuery()) {
                     if (rs.next()) {
+
                         String serviceId = rs.getString("service_id");
                         String stateId = rs.getString("state_id");
                         String districtId = rs.getString("district_id");
@@ -72,6 +71,7 @@ public class GenerateTokenServlet extends HttpServlet {
                         String advocateNameString = rs.getString("advocate_name");
                         String tokenNumbeString = rs.getString("token_number");
 
+                        // Retrieve service-specific details
                         Map<String, String> serviceDetails = serviceUtil.getServiceDetails(conn, serviceId,
                                 rs.getInt("id"));
                         String stateName = serviceUtil.getStateNameById(conn, stateId);
@@ -79,14 +79,17 @@ public class GenerateTokenServlet extends HttpServlet {
                         String courtComplexName = serviceUtil.getCourtComplexNameById(conn, courtComplexId);
                         String kendraName = serviceUtil.getKendraNameById(conn, kendraId);
 
+                        // Set response content type to PDF
                         response.setContentType("application/pdf");
 
+                        // Create PDF
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         try (OutputStream out = baos) {
                             Document document = new Document();
                             PdfWriter.getInstance(document, out);
                             document.open();
 
+                            // Add header
                             Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
                             Paragraph header = new Paragraph("High Court of Madras\n", headerFont);
                             header.setAlignment(Element.ALIGN_CENTER);
@@ -97,10 +100,12 @@ public class GenerateTokenServlet extends HttpServlet {
                             subHeader.setAlignment(Element.ALIGN_CENTER);
                             document.add(subHeader);
 
+                            // Add a line separator
                             Paragraph separator = new Paragraph("___________________________________________\n");
                             separator.setAlignment(Element.ALIGN_CENTER);
                             document.add(separator);
 
+                            // Add booking details table
                             PdfPTable table = new PdfPTable(2);
                             table.setWidthPercentage(100);
                             table.setSpacingBefore(20f);
