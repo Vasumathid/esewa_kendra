@@ -52,8 +52,8 @@ public class GetServicesServlet extends HttpServlet {
                                     "<select name='case_type' id='case_type' class='form-control' " + requiredAttribute
                                             + " onchange='handleCaseTypeChange(this.value)'>"
                                             + "<option value=''>Select Case Type</option>"
-                                            + "<option value='newcase'>New Case</option>"
-                                            + "<option value='oldcase'>Old Case</option>"
+                                            + "<option value='1'>New Case</option>"
+                                            + "<option value='0'>Old Case</option>"
                                             + "</select>"
                                             + "<div id='newCaseOptions' style='display:none;'>"
                                             + "<label for='civil_or_criminal' class='" + (isRequired ? "required" : "")
