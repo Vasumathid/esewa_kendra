@@ -48,6 +48,7 @@
     </style>
     <script>
         $(document).ready(function () {
+            document.getElementById("iframeContainer").style.display = "none";
             function showLoadingOverlay() {
                 $(".loading-overlay").show();
             }
@@ -97,7 +98,7 @@
                 }
                 iframe.src = url;
                 iframe.style.display = "block";
-
+                document.getElementById("iframeContainer").style.display = "block";
                 // Hide loading overlay and handle no results
                 iframe.onload = function () {
                     hideLoadingOverlay();
