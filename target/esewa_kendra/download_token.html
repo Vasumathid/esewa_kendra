@@ -44,11 +44,13 @@
         .error-message {
             color: red;
             display: none;
+            margin-top: 10px;
         }
     </style>
     <script>
         $(document).ready(function () {
             document.getElementById("iframeContainer").style.display = "none";
+
             function showLoadingOverlay() {
                 $(".loading-overlay").show();
             }
@@ -88,26 +90,39 @@
                 }
 
                 showLoadingOverlay();
-                let iframe = document.getElementById("pdfIframe");
-                if (!iframe) {
-                    iframe = document.createElement("iframe");
-                    iframe.id = "pdfIframe";
-                    iframe.style.width = "100%";
-                    iframe.style.height = "500px"; // Adjust height as needed
-                    document.getElementById("iframeContainer").appendChild(iframe);
-                }
-                iframe.src = url;
-                iframe.style.display = "block";
-                document.getElementById("iframeContainer").style.display = "block";
-                // Hide loading overlay and handle no results
-                iframe.onload = function () {
-                    hideLoadingOverlay();
-                };
-                iframe.onerror = function () {
-                    hideLoadingOverlay();
-                    document.getElementById("iframeContainer").style.display = "none";
-                    alert("Invalid token, advocate name, or phone number");
-                };
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function (response) {
+                        if (response) { // Assuming a valid response contains content
+                            let iframe = document.getElementById("pdfIframe");
+                            if (!iframe) {
+                                iframe = document.createElement("iframe");
+                                iframe.id = "pdfIframe";
+                                iframe.style.width = "100%";
+                                iframe.style.height = "500px"; // Adjust height as needed
+                                document.getElementById("iframeContainer").appendChild(iframe);
+                            }
+                            iframe.src = url;
+                            iframe.style.display = "block";
+                            document.getElementById("error-message").style.display = "none";
+                            document.getElementById("iframeContainer").style.display = "block";
+                        } else {
+                            document.getElementById("error-text").innerText = "Invalid token, advocate name, or phone number";
+                            document.getElementById("error-message").style.display = "block";
+                            document.getElementById("iframeContainer").style.display = "none";
+                        }
+                        hideLoadingOverlay();
+
+                    },
+                    error: function () {
+                        hideLoadingOverlay();
+                        document.getElementById("error-text").innerText = "Invalid Token number. Please check!!!";
+                        document.getElementById("error-message").style.display = "block";
+                        document.getElementById("iframeContainer").style.display = "none";
+                    }
+                });
             }
 
             document.getElementById("generateTokenForm").addEventListener("submit", generateToken);
@@ -143,13 +158,17 @@
                     <input type="text" id="phoneNumber" name="phoneNumber" class="form-control">
                 </div>
             </div>
+            <div id="error-message" class="error-message">
+                <span id="error-text"></span>
+            </div>
             <button type="submit" class="btn btn-primary btn-lg btn-block">View</button>
         </form>
+        <hr />
         <div id="iframeContainer" class="mt-4"></div>
     </div>
 
     <div id="footer-placeholder"></div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>

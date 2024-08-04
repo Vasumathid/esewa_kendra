@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import com.esewa_kendra.Util.ServiceUtil;
+import java.net.URLEncoder;
 
 @WebServlet("/bookService")
 public class BookServiceServlet extends HttpServlet {
@@ -93,8 +94,11 @@ public class BookServiceServlet extends HttpServlet {
         } catch (SQLException | ClassNotFoundException e) {
             throw new ServletException("Database connection error", e);
         }
+        String pdfUrl = request.getContextPath() + "/generateToken?token=" + tokenNumber;
 
-        response.sendRedirect("generateToken?token=" + tokenNumber);
+        // Redirect to displayPdf.html with the PDF URL
+        response.sendRedirect("displayPdf.html?pdfUrl=" + URLEncoder.encode(pdfUrl, "UTF-8"));
+        // response.sendRedirect("generateToken?token=" + tokenNumber);
     }
 
     private Map<String, String> validateRequiredFields(HttpServletRequest request, String serviceId) {

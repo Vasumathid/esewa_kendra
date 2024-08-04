@@ -2,13 +2,13 @@
 <html lang="en">
 
 <head>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>e-Sewa Kendra-Service Booking</title>
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
   <style>
     /* CSS for the loading overlay */
     @keyframes zoom {
@@ -63,6 +63,27 @@
 
     $(document).ready(function () {
 
+      $('#registrationForm').on('submit', function (event) {
+        event.preventDefault(); // Prevent default form submission
+        $.ajax({
+          type: 'POST',
+          url: $(this).attr('action'),
+          data: $(this).serialize(),
+          dataType: 'json',
+          success: function (response) {
+            if (response.status === 'success') {
+              window.open(response.pdfUrl, '_blank'); // Open PDF in a new tab
+              window.location.href = 'index.html'; // Redirect to index page
+            } else {
+              $('#registrationMessage').html('<div class="alert alert-danger">Registration failed. Please try again.</div>');
+            }
+          },
+          error: function () {
+            $('#registrationMessage').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+          }
+        });
+      });
+
       function showLoadingOverlay() {
         $(".loading-overlay").show();
       }
@@ -84,33 +105,54 @@
         var serviceId = $("#serviceType").val();
         var date = $("#date").val();
         var timeSlot = $("#time_slot").val();
+        var kendraId = $("#kendra").val();
+        var courtComplexId = $("#courtComplex").val();
 
-        if (serviceId && date && timeSlot) {
+        if (serviceId && date && timeSlot && kendraId && courtComplexId) {
           showLoadingOverlay();
           $.get("checkAvailability", {
             serviceId: serviceId,
             date: date,
             timeSlot: timeSlot,
+            kendraId: kendraId,
+            courtComplexId: courtComplexId
           })
             .done(function (data) {
-              alert(
-                data.available ? "Slots available!" : "No slots available."
-              );
-              return true;
+              try {
+                var response = data;
+                if (response.available) {
+                  alert("Slots available at the selected E-Sewa Kendra!");
+                  return true;
+                } else {
+                  alert("No slots available at the selected E-Sewa Kendra.");
+                  if (response.suggestions.length > 0) {
+                    var suggestions = response.suggestions.map(function (kendra) {
+                      return kendra.name;
+                    }).join(', ');
+                    alert("Available E-Sewa Kendras: " + suggestions);
+                  } else {
+                    alert("No other E-Sewa Kendras available for the selected time slot and date.");
+                  }
+                } return false;
+              } catch (e) {
+                console.error("Failed to parse JSON response:", e);
+                alert("An error occurred while checking availability.");
+              }
             })
             .fail(function (jqXHR, textStatus, errorThrown) {
-              console.error(
-                "Failed to check availability:",
-                textStatus,
-                errorThrown
-              );
+              console.error("Failed to check availability:", textStatus, errorThrown);
+              alert("An error occurred while checking availability.");
               return false;
             })
             .always(function () {
               hideLoadingOverlay();
             });
+        } else {
+          alert("Please provide all required details.");
+          return false;
         }
       }
+
 
       function loadDynamicOptions(action, targetId, parentId, clearTargets) {
         var parentIdValue = parentId ? $(parentId).val() : null;
@@ -368,12 +410,11 @@
       }
 
       $("form").on("submit", function (event) {
-        if (!validateForm()) {
+        if (!validateForm() || !checkAvailability()) {
           event.preventDefault(); // Prevent form submission
         }
       });
     });
-
     // window.onload = function () {
     //   var errorMessage = '<%= request.getAttribute("errorMessage") %>';
     //   if (errorMessage) {
@@ -396,7 +437,7 @@
     <div id="error-message">
       <span id="error-text"></span>
     </div>
-    <form action="bookService" method="post">
+    <form id="registrationForm" method="post" action="bookService">
       <div class="form-row mb-3">
         <div class="col-md-3">
           <label for="state" class="required">State:</label>
@@ -443,7 +484,8 @@
           <label for="advocateName" class="required">Advocate Name/Party in Person:</label>
         </div>
         <div class="col-md-8">
-          <input type="text" name="advocateName" id="advocateName" class="form-control" required />
+          <input type="text" name="advocateName" id="advocateName" class="form-control"
+            placeholder="Enter Advocate Name/Party in Person Name" required />
         </div>
       </div>
       <br />
@@ -462,7 +504,8 @@
           <label for="phoneNumber" class="required">Phone Number:</label>
         </div>
         <div class="col-md-8">
-          <input type="text" name="phoneNumber" id="phoneNumber" class="form-control" required />
+          <input type="text" name="phoneNumber" id="phoneNumber" class="form-control"
+            placeholder="Enter 10 digit Phone number" required />
         </div>
       </div>
       <br />
@@ -471,16 +514,38 @@
           <label for="email">Email:</label>
         </div>
         <div class="col-md-8">
-          <input type="email" name="email" id="email" class="form-control" />
+          <input type="email" name="email" id="email" placeholder="Enter Email id" class="form-control" />
         </div>
       </div>
       <br />
       <div id="serviceFormContainer">
         <!-- Dynamic service-specific form will be loaded here -->
       </div>
-
+      <div id="registrationMessage" class="mt-4"></div>
       <button type="submit" class="btn btn-primary">Generate Token</button>
     </form>
+
+    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="pdfModalLabel">PDF Document</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="pdfLoader" class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+            <iframe id="pdfFrame" src="" style="width: 100%; height: 600px; display: none;" frameborder="0"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="footer-placeholder"></div>
 </body>

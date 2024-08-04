@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn-back {
+            margin-top: 20px;
+        }
+
+        .card {
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h2 class="text-center">Registration Successful</h2>
+            <p class="text-center">Your registration has been processed successfully. You can view and download the
+                generated PDF below.</p>
+            <iframe src="" id="pdfIframe"></iframe>
+            <div class="text-center">
+                <button class="btn btn-primary btn-back" onclick="goBack()">Go Back to Main Page</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get the PDF URL from the URL parameter
+        function getParameterByName(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const pdfUrl = getParameterByName('pdfUrl');
+            if (pdfUrl) {
+                document.getElementById('pdfIframe').src = pdfUrl;
+            } else {
+                alert('No PDF URL provided.');
+            }
+        });
+    </script>
+</body>
+
+</html>
