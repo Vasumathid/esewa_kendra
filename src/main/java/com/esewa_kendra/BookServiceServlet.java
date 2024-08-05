@@ -105,7 +105,7 @@ public class BookServiceServlet extends HttpServlet {
         Map<String, String> errors = new HashMap<>();
 
         try (Connection conn = DBConfig.getConnection()) {
-            String query = "SELECT column_name FROM service_columns WHERE service_id = ? AND is_required = true";
+            String query = "SELECT column_name FROM service_columns WHERE service_id = ? AND isRequired = true";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setInt(1, Integer.parseInt(serviceId));
                 try (ResultSet rs = stmt.executeQuery()) {
