@@ -5,7 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF Viewer</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script>
+        function loadHTML(url, elementId) {
+            fetch(url)
+                .then((response) => response.text())
+                .then((data) => {
+                    document.getElementById(elementId).innerHTML = data;
+                });
+        }
+
+        loadHTML("header.html", "header-placeholder");
+        loadHTML("footer.html", "footer-placeholder");
+    </script>
     <style>
         .container {
             margin-top: 50px;
@@ -36,6 +47,7 @@
 </head>
 
 <body>
+    <div id="header-placeholder"></div>
     <div class="container">
         <div class="card">
             <h2 class="text-center">Registration Successful</h2>
@@ -47,7 +59,7 @@
             </div>
         </div>
     </div>
-
+    <div id="footer-placeholder"></div>
     <script>
         // Get the PDF URL from the URL parameter
         function getParameterByName(name) {

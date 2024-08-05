@@ -62,27 +62,7 @@
   <script>
 
     $(document).ready(function () {
-
-      $('#registrationForm').on('submit', function (event) {
-        event.preventDefault(); // Prevent default form submission
-        $.ajax({
-          type: 'POST',
-          url: $(this).attr('action'),
-          data: $(this).serialize(),
-          dataType: 'json',
-          success: function (response) {
-            if (response.status === 'success') {
-              window.open(response.pdfUrl, '_blank'); // Open PDF in a new tab
-              window.location.href = 'index.html'; // Redirect to index page
-            } else {
-              $('#registrationMessage').html('<div class="alert alert-danger">Registration failed. Please try again.</div>');
-            }
-          },
-          error: function () {
-            $('#registrationMessage').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
-          }
-        });
-      });
+      var isAvailable = false;
 
       function showLoadingOverlay() {
         $(".loading-overlay").show();
@@ -122,7 +102,7 @@
                 var response = data;
                 if (response.available) {
                   alert("Slots available at the selected E-Sewa Kendra!");
-                  return true;
+                  isAvailable = true;
                 } else {
                   alert("No slots available at the selected E-Sewa Kendra.");
                   if (response.suggestions.length > 0) {
@@ -133,7 +113,8 @@
                   } else {
                     alert("No other E-Sewa Kendras available for the selected time slot and date.");
                   }
-                } return false;
+                  isAvailable = false;
+                }
               } catch (e) {
                 console.error("Failed to parse JSON response:", e);
                 alert("An error occurred while checking availability.");
@@ -142,14 +123,13 @@
             .fail(function (jqXHR, textStatus, errorThrown) {
               console.error("Failed to check availability:", textStatus, errorThrown);
               alert("An error occurred while checking availability.");
-              return false;
+              isAvailable = false;
             })
             .always(function () {
               hideLoadingOverlay();
             });
         } else {
           alert("Please provide all required details.");
-          return false;
         }
       }
 
@@ -399,10 +379,7 @@
           isValid = false;
           errors.push("Please select a Service Type.");
         }
-        if (!checkAvailability) {
-          errors.push("No Slot available! Please change the Date or TimeSlot")
-        }
-        if (!isValid) {
+        if (!isValid || !isAvailable) {
           showError(errors.join("\n"));
         }
 
@@ -410,7 +387,7 @@
       }
 
       $("form").on("submit", function (event) {
-        if (!validateForm() || !checkAvailability()) {
+        if (!validateForm()) {
           event.preventDefault(); // Prevent form submission
         }
       });
