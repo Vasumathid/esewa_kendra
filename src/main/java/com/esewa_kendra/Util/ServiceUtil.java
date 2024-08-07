@@ -51,20 +51,6 @@ public class ServiceUtil {
         return formattedName.toString().trim();
     }
 
-    public String getServiceNameById(Connection conn, String serviceId) throws SQLException {
-        String serviceName = null;
-        String query = "SELECT name FROM services WHERE id = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, Integer.parseInt(serviceId));
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    serviceName = rs.getString("name");
-                }
-            }
-        }
-        return serviceName;
-    }
-
     public String getStateNameById(Connection conn, String stateId) throws SQLException {
         String stateName = null;
         String query = "SELECT name FROM states WHERE id = ?";
