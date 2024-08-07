@@ -193,9 +193,9 @@
                 maxDate: "today",
                 defaultDate: "today"
               });
-
               // Check if #case_type element exists and bind the change event
               if ($('#case_type').length != 0) {
+                $('div#civil_or_criminal,div#cnr_number').hide();
                 $('#case_type').change(function () {
                   handleCaseTypeChange($(this).val());
                 });
@@ -212,18 +212,15 @@
 
 
       function handleCaseTypeChange(value) {
-        const newCaseOptions = document.getElementById('newCaseOptions');
-        const oldCaseOptions = document.getElementById('oldCaseOptions');
-
         if (value === '1') {
-          newCaseOptions.style.display = 'block';
-          oldCaseOptions.style.display = 'none';
+          $('div#civil_or_criminal').show();
+          $('div#cnr_number').hide();
         } else if (value === '0') {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'block';
+          $('div#civil_or_criminal').hide();
+          $('div#cnr_number').show();
         } else {
-          newCaseOptions.style.display = 'none';
-          oldCaseOptions.style.display = 'none';
+          $('div#civil_or_criminal').hide();
+          $('div#cnr_number').hide();
         }
       }
 

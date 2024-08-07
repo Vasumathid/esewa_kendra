@@ -40,6 +40,9 @@ public class GetServicesServlet extends HttpServlet {
                     String requiredClass = isRequired ? " class='required'" : "";
 
                     if (!columnName.equals("booking_id")) {
+                        if (columnName.equals("civil_or_criminal") || (columnName.equals("cnr_number"))) {
+                            out.print("<div id='" + columnName + "'>");
+                        }
                         out.print("<div class='form-row mb-3'>");
                         out.print("<div class='col-md-4'>");
                         out.print("<label for='" + columnName + "'" + requiredClass + ">" + formattedColumnString
@@ -121,6 +124,9 @@ public class GetServicesServlet extends HttpServlet {
                         out.print("</div>");
                         out.print("</div>"); // End of form row
                         out.print("<br/>");
+                        if (columnName.equals("civil_or_criminal") || (columnName.equals("cnr_number"))) {
+                            out.print("</div>");
+                        }
                     }
                 }
             } catch (SQLException | ClassNotFoundException e) {

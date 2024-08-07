@@ -190,23 +190,15 @@
 
               flatpickr(".date-Picker", {
                 minDate: "today",
-                maxDate: new Date().fp_incr(1),
-                defaultDate: new Date()
+                maxDate: "today",
+                defaultDate: "today"
               });
-              function handleCaseTypeChange(value) {
-                const newCaseOptions = document.getElementById('newCaseOptions');
-                const oldCaseOptions = document.getElementById('oldCaseOptions');
-
-                if (value === 'newcase') {
-                  newCaseOptions.style.display = 'block';
-                  oldCaseOptions.style.display = 'none';
-                } else if (value === 'oldcase') {
-                  newCaseOptions.style.display = 'none';
-                  oldCaseOptions.style.display = 'block';
-                } else {
-                  newCaseOptions.style.display = 'none';
-                  oldCaseOptions.style.display = 'none';
-                }
+              // Check if #case_type element exists and bind the change event
+              if ($('#case_type').length != 0) {
+                $('div#civil_or_criminal,div#cnr_number').hide();
+                $('#case_type').change(function () {
+                  handleCaseTypeChange($(this).val());
+                });
               }
             })
             .catch((error) =>
@@ -217,6 +209,21 @@
           $("#serviceFormContainer").empty();
         }
       });
+
+
+      function handleCaseTypeChange(value) {
+        if (value === '1') {
+          $('div#civil_or_criminal').show();
+          $('div#cnr_number').hide();
+        } else if (value === '0') {
+          $('div#civil_or_criminal').hide();
+          $('div#cnr_number').show();
+        } else {
+          $('div#civil_or_criminal').hide();
+          $('div#cnr_number').hide();
+        }
+      }
+
 
       // Show loading overlay on page load
       $(".loading-overlay").show();
@@ -488,10 +495,10 @@
       <br />
       <div class="form-row mb-3">
         <div class="col-md-4">
-          <label for="email">Email:</label>
+          <label for="email" class="required">Email:</label>
         </div>
         <div class="col-md-8">
-          <input type="email" name="email" id="email" placeholder="Enter Email id" class="form-control" />
+          <input type="email" name="email" id="email" placeholder="Enter Email id" class="form-control" required />
         </div>
       </div>
       <br />
