@@ -26,7 +26,7 @@ public class DynamicFormServlet extends HttpServlet {
 
         try (Connection conn = DBConfig.getConnection()) {
             if ("serviceTypes".equals(action)) {
-                String query = "SELECT id, name FROM services";
+                String query = "SELECT id, name FROM services where isVisible=1";
                 PreparedStatement pstmt = conn.prepareStatement(query);
                 ResultSet rs = pstmt.executeQuery();
                 out.print("<option value=''>Select Type of Service</option>");
