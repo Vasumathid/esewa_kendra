@@ -47,11 +47,11 @@ public class GetServicesServlet extends HttpServlet {
                         out.print("</div>");
                         out.print("<div class='col-md-8'>");
 
-                        if (columnName.equals("case_type")) {
+                        if (columnName.equals("case_type_category")) {
                             out.print(
                                     "<select name='case_type' id='case_type' class='form-control' " + requiredAttribute
-                                            + " onchange='handleCaseTypeChange(this.value)'>"
-                                            + "<option value=''>Select Case Type</option>"
+                                            + ">"
+                                            + "<option value=''>Select Case Type </option>"
                                             + "<option value='1'>New Case</option>"
                                             + "<option value='0'>Old Case</option>"
                                             + "</select>"

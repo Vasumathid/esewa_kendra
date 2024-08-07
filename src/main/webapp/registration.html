@@ -193,20 +193,12 @@
                 maxDate: "today",
                 defaultDate: "today"
               });
-              function handleCaseTypeChange(value) {
-                const newCaseOptions = document.getElementById('newCaseOptions');
-                const oldCaseOptions = document.getElementById('oldCaseOptions');
 
-                if (value === 'newcase') {
-                  newCaseOptions.style.display = 'block';
-                  oldCaseOptions.style.display = 'none';
-                } else if (value === 'oldcase') {
-                  newCaseOptions.style.display = 'none';
-                  oldCaseOptions.style.display = 'block';
-                } else {
-                  newCaseOptions.style.display = 'none';
-                  oldCaseOptions.style.display = 'none';
-                }
+              // Check if #case_type element exists and bind the change event
+              if ($('#case_type').length != 0) {
+                $('#case_type').change(function () {
+                  handleCaseTypeChange($(this).val());
+                });
               }
             })
             .catch((error) =>
@@ -217,6 +209,24 @@
           $("#serviceFormContainer").empty();
         }
       });
+
+
+      function handleCaseTypeChange(value) {
+        const newCaseOptions = document.getElementById('newCaseOptions');
+        const oldCaseOptions = document.getElementById('oldCaseOptions');
+
+        if (value === '1') {
+          newCaseOptions.style.display = 'block';
+          oldCaseOptions.style.display = 'none';
+        } else if (value === '0') {
+          newCaseOptions.style.display = 'none';
+          oldCaseOptions.style.display = 'block';
+        } else {
+          newCaseOptions.style.display = 'none';
+          oldCaseOptions.style.display = 'none';
+        }
+      }
+
 
       // Show loading overlay on page load
       $(".loading-overlay").show();
