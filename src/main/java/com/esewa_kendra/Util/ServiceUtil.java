@@ -12,24 +12,19 @@ import com.esewa_kendra.DBConfig;
 public class ServiceUtil {
     public Map<String, String> getServiceDetails(Connection conn, String serviceId, int bookingId) throws SQLException {
         Map<String, String> serviceDetails = new LinkedHashMap<>();
-        String serviceName = getServiceNameById(conn, serviceId);
-        if (serviceName != null) {
-            String tableName = getTableNameForService(serviceName);
-            if (tableName != null) {
-                String query = "SELECT * FROM " + tableName + " WHERE booking_id = ?";
-                try (PreparedStatement serviceStmt = conn.prepareStatement(query)) {
-                    serviceStmt.setInt(1, bookingId);
-
-                    try (ResultSet rs = serviceStmt.executeQuery()) {
-                        if (rs.next()) {
-                            ResultSetMetaData metaData = rs.getMetaData();
-                            int columnCount = metaData.getColumnCount();
-
-                            for (int i = 1; i <= columnCount; i++) {
-                                String columnName = metaData.getColumnName(i);
-                                String value = rs.getString(columnName);
-                                serviceDetails.put(columnName, value);
-                            }
+        String tableName = getTableNameForServiceById(serviceId);
+        if (tableName != null) {
+            String query = "SELECT * FROM " + tableName + " WHERE booking_id = ?";
+            try (PreparedStatement serviceStmt = conn.prepareStatement(query)) {
+                serviceStmt.setInt(1, bookingId);
+                try (ResultSet rs = serviceStmt.executeQuery()) {
+                    if (rs.next()) {
+                        ResultSetMetaData metaData = rs.getMetaData();
+                        int columnCount = metaData.getColumnCount();
+                        for (int i = 1; i <= columnCount; i++) {
+                            String columnName = metaData.getColumnName(i);
+                            String value = rs.getString(columnName);
+                            serviceDetails.put(columnName, value);
                         }
                     }
                 }
@@ -68,10 +63,6 @@ public class ServiceUtil {
             }
         }
         return serviceName;
-    }
-
-    public String getTableNameForService(String serviceName) {
-        return serviceName.replace("for", "").replaceAll("\\s+", "_").toLowerCase();
     }
 
     public String getStateNameById(Connection conn, String stateId) throws SQLException {
@@ -130,17 +121,16 @@ public class ServiceUtil {
         return kendraName;
     }
 
-    public String getTableNameForServiceById(int serviceId) throws SQLException {
+    public String getTableNameForServiceById(String serviceId) throws SQLException {
         String tableName = null;
-        String query = "SELECT name FROM services WHERE id = ?";
+        String query = "SELECT service_table_name FROM services WHERE id = ?";
         DBConfig DBConfig = new DBConfig();
         try (Connection conn = DBConfig.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setInt(1, serviceId);
+            pstmt.setInt(1, Integer.parseInt(serviceId));
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                String serviceName = rs.getString("name");
-                tableName = getTableNameForService(serviceName);
+                tableName = rs.getString("service_table_name");
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();

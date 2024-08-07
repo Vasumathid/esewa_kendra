@@ -68,7 +68,7 @@ public class CheckAvailabilityServlet extends HttpServlet {
 
     private boolean checkAndRespondAvailability(Connection conn, String serviceId, String date, String timeSlot,
             int kendraId, int courtComplexId, JSONObject jsonResponse) throws SQLException {
-        int count = getBookingCount(conn, Integer.parseInt(serviceId), date, timeSlot, kendraId, courtComplexId);
+        int count = getBookingCount(conn, serviceId, date, timeSlot, kendraId, courtComplexId);
 
         // Check availability
         if (count >= 25) {
@@ -80,7 +80,7 @@ public class CheckAvailabilityServlet extends HttpServlet {
         }
     }
 
-    private int getBookingCount(Connection conn, int serviceId, String date, String timeSlot, int kendraId,
+    private int getBookingCount(Connection conn, String serviceId, String date, String timeSlot, int kendraId,
             int courtComplexId) throws SQLException {
 
         String tableName = serviceUtil.getTableNameForServiceById(serviceId);
@@ -109,7 +109,7 @@ public class CheckAvailabilityServlet extends HttpServlet {
         JSONArray availableKendras = new JSONArray();
 
         // Determine the table to query based on the serviceId
-        String serviceTable = serviceUtil.getTableNameForService(serviceUtil.getServiceNameById(conn, serviceId));
+        String serviceTable = serviceUtil.getTableNameForServiceById(serviceId);
 
         if (serviceTable == null) {
             throw new SQLException("Invalid service ID");

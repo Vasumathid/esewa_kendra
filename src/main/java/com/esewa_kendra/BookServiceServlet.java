@@ -128,16 +128,13 @@ public class BookServiceServlet extends HttpServlet {
     private void insertServiceDetails(Connection conn, String serviceId, int bookingId, HttpServletRequest request)
             throws SQLException {
         ServiceUtil serviceUtil = new ServiceUtil();
-        String serviceName = serviceUtil.getServiceNameById(conn, serviceId);
-        if (serviceName != null) {
-            String tableName = serviceUtil.getTableNameForService(serviceName);
-            if (tableName != null) {
-                String insertQuery = buildDynamicInsertQuery(conn, tableName, serviceId, bookingId, request);
-                if (insertQuery != null) {
-                    try (PreparedStatement serviceStmt = conn.prepareStatement(insertQuery)) {
-                        setPreparedStatementParameters(serviceStmt, serviceId, bookingId, request);
-                        serviceStmt.executeUpdate();
-                    }
+        String tableName = serviceUtil.getTableNameForServiceById(serviceId);
+        if (tableName != null) {
+            String insertQuery = buildDynamicInsertQuery(conn, tableName, serviceId, bookingId, request);
+            if (insertQuery != null) {
+                try (PreparedStatement serviceStmt = conn.prepareStatement(insertQuery)) {
+                    setPreparedStatementParameters(serviceStmt, serviceId, bookingId, request);
+                    serviceStmt.executeUpdate();
                 }
             }
         }
