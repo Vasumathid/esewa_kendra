@@ -190,8 +190,8 @@
 
               flatpickr(".date-Picker", {
                 minDate: "today",
-                maxDate: new Date().fp_incr(1),
-                defaultDate: new Date()
+                maxDate: "today",
+                defaultDate: "today"
               });
               function handleCaseTypeChange(value) {
                 const newCaseOptions = document.getElementById('newCaseOptions');
