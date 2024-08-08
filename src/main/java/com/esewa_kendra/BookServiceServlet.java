@@ -36,7 +36,15 @@ public class BookServiceServlet extends HttpServlet {
         String kendraId = request.getParameter("kendra");
         String serviceId = request.getParameter("serviceType");
         String advocateName = request.getParameter("advocateName");
-        String enrollmentNumber = request.getParameter("enrollmentNumber");
+        String isAdvocateParam = request.getParameter("advocateOrParty");
+        boolean isAdvocate = isAdvocateParam != null && isAdvocateParam.equals("advocate");
+
+        String enrollmentNumber;
+        if (isAdvocate) {
+            enrollmentNumber = request.getParameter("enrollmentNumber");
+        } else {
+            enrollmentNumber = "";
+        }
         String phoneNumber = request.getParameter("phoneNumber");
         String email = request.getParameter("email");
         String status = "Confirmed";
@@ -61,7 +69,7 @@ public class BookServiceServlet extends HttpServlet {
             tokenNumber = statePrefix + districtPrefix + timestamp;
 
             // Insert booking details
-            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, enrollment_number, phone_number, email, status, token_number,booking_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, isAdvocate ,enrollment_number, phone_number, email, status, token_number,booking_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)";
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery, Statement.RETURN_GENERATED_KEYS)) {
                 bookingStmt.setInt(1, Integer.parseInt(stateId));
                 bookingStmt.setInt(2, Integer.parseInt(districtId));
@@ -69,12 +77,13 @@ public class BookServiceServlet extends HttpServlet {
                 bookingStmt.setInt(4, Integer.parseInt(kendraId));
                 bookingStmt.setInt(5, Integer.parseInt(serviceId));
                 bookingStmt.setString(6, advocateName);
-                bookingStmt.setString(7, enrollmentNumber);
-                bookingStmt.setString(8, phoneNumber);
-                bookingStmt.setString(9, email);
-                bookingStmt.setString(10, status);
-                bookingStmt.setString(11, tokenNumber);
-                bookingStmt.setTimestamp(12, Timestamp.valueOf(LocalDateTime.now()));
+                bookingStmt.setBoolean(7, isAdvocate);
+                bookingStmt.setString(8, enrollmentNumber);
+                bookingStmt.setString(9, phoneNumber);
+                bookingStmt.setString(10, email);
+                bookingStmt.setString(11, status);
+                bookingStmt.setString(12, tokenNumber);
+                bookingStmt.setTimestamp(13, Timestamp.valueOf(LocalDateTime.now()));
                 bookingStmt.executeUpdate();
 
                 try (ResultSet rs = bookingStmt.getGeneratedKeys()) {
