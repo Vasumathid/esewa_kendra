@@ -133,6 +133,40 @@
         }
       }
 
+      $('#sendOtpButton').click(function () {
+        var mobileNumber = $('#phoneNumber').val();
+        $.ajax({
+          url: 'sendOtp',
+          type: 'POST',
+          data: { mobileNumber: mobileNumber },
+          success: function (response) {
+            if (response.success) {
+              $('#otpSection').show();
+              $('#message').html('<div class="alert alert-success">OTP sent successfully!</div>');
+            } else {
+              $('#message').html('<div class="alert alert-danger">Failed to send OTP!</div>');
+            }
+          }
+        });
+      });
+
+      $('#verifyOtpButton').click(function () {
+        var mobileNumber = $('#mobileNumber').val();
+        var otp = $('#otp').val();
+        $.ajax({
+          url: 'verifyOtp',
+          type: 'POST',
+          data: { mobileNumber: mobileNumber, otp: otp },
+          success: function (response) {
+            if (response.success) {
+              $('#message').html('<div class="alert alert-success">OTP verified successfully!</div>');
+            } else {
+              $('#message').html('<div class="alert alert-danger">Invalid OTP!</div>');
+            }
+          }
+        });
+      });
+
 
       function loadDynamicOptions(action, targetId, parentId, clearTargets) {
         var parentIdValue = parentId ? $(parentId).val() : null;
@@ -210,6 +244,13 @@
         }
       });
 
+      $('input[name="advocateOrParty"]').change(function () {
+        if ($('#advocate').is(':checked')) {
+          $('#advocateDetails').show();
+        } else {
+          $('#advocateDetails').hide();
+        }
+      });
 
       function handleCaseTypeChange(value) {
         if (value === '1') {
@@ -465,24 +506,49 @@
       <br />
       <div class="form-row mb-3">
         <div class="col-md-4">
-          <label for="advocateName" class="required">Advocate Name/Party in Person:</label>
+          <label for="advocateName" class="required">Name</label>
         </div>
         <div class="col-md-8">
-          <input type="text" name="advocateName" id="advocateName" class="form-control"
-            placeholder="Enter Advocate Name/Party in Person Name" required />
+          <input type="text" name="advocateName" id="advocateName" class="form-control" placeholder="Enter Name"
+            required />
         </div>
       </div>
       <br />
+
       <div class="form-row mb-3">
         <div class="col-md-4">
-          <label for="enrollmentNumber">Enrollment Number:[MS/XXXX/YYYY]</label>
+          <label for="advocateOrParty">Advocate/Party in person</label>
         </div>
         <div class="col-md-8">
-          <input type="text" name="enrollmentNumber" id="enrollmentNumber" class="form-control"
-            placeholder="State Code/Bar Code/Bar Year" />
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-check">
+                <input type="radio" name="advocateOrParty" id="advocate" value="advocate" class="form-check-input">
+                <label for="advocate" class="form-check-label">Advocate</label>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-check">
+                <input type="radio" name="advocateOrParty" id="party" value="party" class="form-check-input">
+                <label for="party" class="form-check-label">Party in person</label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <br />
+      <div id="advocateDetails" style="display: none;">
+        <div class="form-row mb-3">
+          <div class="col-md-4">
+            <label for="enrollmentNumber">Enrollment Number: [MS/XXXX/YYYY]</label>
+          </div>
+          <div class="col-md-8">
+            <input type="text" name="enrollmentNumber" id="enrollmentNumber" class="form-control"
+              placeholder="State Code/Bar Code/Bar Year">
+          </div>
+        </div>
+        <br />
+      </div>
       <div class="form-row mb-3">
         <div class="col-md-4">
           <label for="phoneNumber" class="required">Phone Number:</label>
@@ -490,6 +556,14 @@
         <div class="col-md-8">
           <input type="text" name="phoneNumber" id="phoneNumber" class="form-control"
             placeholder="Enter 10 digit Phone number" required />
+          <button type="button" class="btn btn-primary" id="sendOtpButton">Send OTP</button>
+          <div id="otpSection" class="form-inline mt-3" style="display: none;">
+            <div class="form-group">
+              <label for="otp" class="mr-2">Enter OTP:</label>
+              <input type="text" class="form-control" id="otp" name="otp" required>
+            </div>
+            <button type="button" class="btn btn-success ml-2" id="verifyOtpButton">Verify OTP</button>
+          </div>
         </div>
       </div>
       <br />
@@ -505,31 +579,10 @@
       <div id="serviceFormContainer">
         <!-- Dynamic service-specific form will be loaded here -->
       </div>
+      <div id="message"></div>
       <div id="registrationMessage" class="mt-4"></div>
       <button type="submit" class="btn btn-primary">Generate Token</button>
     </form>
-
-    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
-      aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="pdfModalLabel">PDF Document</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <div id="pdfLoader" class="text-center">
-              <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
-              </div>
-            </div>
-            <iframe id="pdfFrame" src="" style="width: 100%; height: 600px; display: none;" frameborder="0"></iframe>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
   <div id="footer-placeholder"></div>
 </body>

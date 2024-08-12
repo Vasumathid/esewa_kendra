@@ -5,4 +5,6 @@ C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\DBConf
 C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\DynamicFormServlet.java
 C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\GenerateTokenServlet.java
 C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\GetServicesServlet.java
+C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\SendOtpServlet.java
 C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\Util\ServiceUtil.java
+C:\Users\VasumathiDulasidaran\esewa_kendra\src\main\java\com\esewa_kendra\VerifyOtpServlet.java

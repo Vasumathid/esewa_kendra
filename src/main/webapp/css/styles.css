@@ -3716,3 +3716,8 @@ h1.display-4.title {
         transform: rotate(360deg);
     }
 }
+.form-inline .form-group {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}

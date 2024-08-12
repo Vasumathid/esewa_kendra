@@ -1,7 +1,9 @@
 com\esewa_kendra\DynamicFormServlet.class
 com\esewa_kendra\GenerateTokenServlet.class
 com\esewa_kendra\CancelBookingServlet.class
+com\esewa_kendra\VerifyOtpServlet.class
 com\esewa_kendra\Util\ServiceUtil.class
+com\esewa_kendra\SendOtpServlet.class
 com\esewa_kendra\CheckAvailabilityServlet.class
 com\esewa_kendra\DBConfig.class
 com\esewa_kendra\GetServicesServlet.class
