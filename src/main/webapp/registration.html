@@ -435,9 +435,12 @@
 
 
       $('#registrationForm').on('submit', function (event) {
-        // if (!validateForm()) { 
-        event.preventDefault();
+        $(".loading-overlay").show();
+        if (!validateForm()) {
+          event.preventDefault();
+        }
         // }// Prevent the default form submission
+        event.preventDefault();
 
         // Serialize the form data
         var formData = $(this).serialize();
@@ -448,15 +451,18 @@
           data: formData,
           dataType: 'json',
           success: function (response) {
+            $(".loading-overlay").hide();
             if (response.status === 'success') {
               $('#message').html('<div class="alert alert-success">' + response.message + '</div>');
               // $('#tokenNumber').text(response.tokenNumber);
             } else {
+              $(".loading-overlay").hide();
               // Handle validation errors or other messages
               $('#message').html('<div class="alert alert-danger">' + response.message + '</div>');
             }
           },
           error: function () {
+            $(".loading-overlay").hide();
             // Handle server errors
             $('#message').html('<div class="alert alert-danger">Server error occurred.Please try again later.</div>');
           }
