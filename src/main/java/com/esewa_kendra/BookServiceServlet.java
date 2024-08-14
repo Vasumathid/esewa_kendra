@@ -26,10 +26,11 @@ import java.net.URLEncoder;
 
 @WebServlet("/bookService")
 public class BookServiceServlet extends HttpServlet {
+    ServiceUtil serviceUtil = new ServiceUtil();
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        ServiceUtil serviceUtil = new ServiceUtil();
         String stateId = request.getParameter("state");
         String districtId = request.getParameter("district");
         String courtComplexId = request.getParameter("courtComplex");
@@ -51,10 +52,17 @@ public class BookServiceServlet extends HttpServlet {
         String tokenNumber = null;
         Map<String, String> validationErrors = validateRequiredFields(request, serviceId);
 
-        if (!validationErrors.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        // Check if booking is allowed
+        if (!isBookingAllowed(enrollmentNumber, phoneNumber, serviceId)) {
             response.setContentType("application/json");
-            response.getWriter().write(new Gson().toJson(validationErrors));
+            response.getWriter().write(
+                    new Gson().toJson(Map.of("status", "error", "message",
+                            "A booking already exists for the provided enrollment number and phone number for this service.")));
+            return;
+        }
+        if (!validationErrors.isEmpty()) {
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson().toJson(Map.of("status", "error", "message", validationErrors)));
             return;
         }
 
@@ -96,18 +104,45 @@ public class BookServiceServlet extends HttpServlet {
 
                 conn.commit();
 
+                // Send success response
+                response.setContentType("application/json");
+                response.getWriter().write(new Gson().toJson(Map.of("status", "success", "message",
+                        "Booking confirmed successfully.", "tokenNumber", tokenNumber)));
+
             } catch (SQLException e) {
                 conn.rollback();
-                throw new ServletException("Error inserting booking details", e);
+                response.setContentType("application/json");
+                response.getWriter().write(new Gson().toJson(
+                        Map.of("status", "error", "message", "Error inserting booking details: " + e.getMessage())));
             }
         } catch (SQLException | ClassNotFoundException e) {
-            throw new ServletException("Database connection error", e);
+            response.setContentType("application/json");
+            response.getWriter().write(new Gson()
+                    .toJson(Map.of("status", "error", "message", "Database connection error: " + e.getMessage())));
         }
-        String pdfUrl = request.getContextPath() + "/generateToken?token=" + tokenNumber;
+    }
 
-        // Redirect to displayPdf.html with the PDF URL
-        response.sendRedirect("displayPdf.html?pdfUrl=" + URLEncoder.encode(pdfUrl, "UTF-8"));
-        // response.sendRedirect("generateToken?token=" + tokenNumber);
+    private boolean isBookingAllowed(String enrollmentNumber, String phoneNumber, String serviceId) {
+        try (Connection conn = DBConfig.getConnection()) {
+            String query = "SELECT COUNT(*) FROM bookings b " +
+                    "JOIN " + serviceUtil.getTableNameForServiceById(serviceId) +
+                    " st ON b.id = st.booking_id WHERE b.enrollment_number = ? AND b.phone_number = ? " +
+                    "AND CAST(st.date AS DATE) = CAST(GETDATE() AS DATE)"; // Check for the same day
+
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setString(1, enrollmentNumber);
+                stmt.setString(2, phoneNumber);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int count = rs.getInt(1);
+                        return count == 0; // Return true if no existing booking found
+                    }
+                }
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private Map<String, String> validateRequiredFields(HttpServletRequest request, String serviceId) {

@@ -135,23 +135,29 @@
 
       $('#sendOtpButton').click(function () {
         var mobileNumber = $('#phoneNumber').val();
-        $.ajax({
-          url: 'sendOtp',
-          type: 'POST',
-          data: { mobileNumber: mobileNumber },
-          success: function (response) {
-            if (response.success) {
-              $('#otpSection').show();
-              $('#message').html('<div class="alert alert-success">OTP sent successfully!</div>');
-            } else {
-              $('#message').html('<div class="alert alert-danger">Failed to send OTP!</div>');
+        var phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(mobileNumber)) {
+          $('#message').html('<div class="alert alert-danger">Please Enter Valid Phone number!</div>');
+        }
+        else {
+          $.ajax({
+            url: 'sendOtp',
+            type: 'POST',
+            data: { mobileNumber: mobileNumber },
+            success: function (response) {
+              if (response.success) {
+                $('#otpSection').show();
+                $('#message').html('<div class="alert alert-success">OTP sent successfully!</div>');
+              } else {
+                $('#message').html('<div class="alert alert-danger">Failed to send OTP!</div>');
+              }
             }
-          }
-        });
+          });
+        }
       });
 
       $('#verifyOtpButton').click(function () {
-        var mobileNumber = $('#mobileNumber').val();
+        var mobileNumber = $('#phoneNumber').val();
         var otp = $('#otp').val();
         $.ajax({
           url: 'verifyOtp',
@@ -361,20 +367,12 @@
         });
       }
 
-      function showError(message) {
-        $("#error-message").text(message).show();
-      }
-
-      function hideError() {
-        $("#error-message").hide();
-      }
-
       function validateForm() {
         var isValid = true;
         var errors = [];
 
         // Clear previous errors
-        hideError();
+        $('#message').html(''); // Clear previous messages
 
         // Example validation
         var advocateName = $("#advocateName").val();
@@ -427,17 +425,42 @@
           isValid = false;
           errors.push("Please select a Service Type.");
         }
+
         if (!isValid || !isAvailable) {
-          showError(errors.join("\n"));
+          $('#message').html('<div class="alert alert-danger">' + errors.join("<br>") + '</div>');
         }
 
         return isValid;
       }
 
-      $("form").on("submit", function (event) {
-        if (!validateForm()) {
-          event.preventDefault(); // Prevent form submission
-        }
+
+      $('#registrationForm').on('submit', function (event) {
+        // if (!validateForm()) { 
+        event.preventDefault();
+        // }// Prevent the default form submission
+
+        // Serialize the form data
+        var formData = $(this).serialize();
+
+        $.ajax({
+          type: 'POST',
+          url: 'bookService', // Adjust the URL if needed
+          data: formData,
+          dataType: 'json',
+          success: function (response) {
+            if (response.status === 'success') {
+              $('#message').html('<div class="alert alert-success">' + response.message + '</div>');
+              // $('#tokenNumber').text(response.tokenNumber);
+            } else {
+              // Handle validation errors or other messages
+              $('#message').html('<div class="alert alert-danger">' + response.message + '</div>');
+            }
+          },
+          error: function () {
+            // Handle server errors
+            $('#message').html('<div class="alert alert-danger">Server error occurred.Please try again later.</div>');
+          }
+        });
       });
     });
     // window.onload = function () {
@@ -459,10 +482,8 @@
   </div>
   <div class="container mt-5">
     <h1 class="mb-4">Book e-Sewa Kendra</h1>
-    <div id="error-message">
-      <span id="error-text"></span>
-    </div>
-    <form id="registrationForm" method="post" action="bookService">
+
+    <form id="registrationForm">
       <div class="form-row mb-3">
         <div class="col-md-3">
           <label for="state" class="required">State:</label>
@@ -579,6 +600,9 @@
       </div>
       <div id="message"></div>
       <div id="registrationMessage" class="mt-4"></div>
+      <div id="error-message">
+        <span id="error-text"></span>
+      </div>
       <button type="submit" class="btn btn-primary">Generate Token</button>
     </form>
   </div>
