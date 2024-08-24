@@ -436,8 +436,9 @@
 
       $('#registrationForm').on('submit', function (event) {
         $(".loading-overlay").show();
-        if (!validateForm()) {
+        if (!validateForm() || !isAvailable) {
           event.preventDefault();
+          hideLoadingOverlay(); // Hide overlay if the form is invalid
         }
         // }// Prevent the default form submission
         event.preventDefault();
