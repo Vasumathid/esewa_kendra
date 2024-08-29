@@ -214,9 +214,10 @@ public class ServiceUtil {
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = rsmd.getColumnName(i);
                     Object columnValue = rs.getObject(i);
-                    rowMap.put(columnName, columnValue);
+                    if (!columnName.equals("booking_id"))
+                        rowMap.put(columnName, columnValue);
                 }
-                jsonResult.put(String.valueOf(rs.getInt("id")), new JSONObject(rowMap));
+                jsonResult.put("ServiceDetails", new JSONObject(rowMap));
             }
 
         } catch (ClassNotFoundException e) {

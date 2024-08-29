@@ -29,6 +29,11 @@
             /* Space between elements */
         }
 
+        .form-container.modify-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
         .form-container>* {
             flex: 1;
         }
@@ -55,7 +60,7 @@
             <hr class="my-4" />
         </div>
         <div class="container mt-4">
-            <div class="form-container">
+            <div class="form-container modify-container">
                 <label for="token">Enter Token Number:</label>
                 <input type="text" id="token" name="token" required class="form-control">
                 <button type="button" id="modifyButton" class="btn btn-primary btn-lg">Modify</button>
@@ -69,8 +74,9 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        <div class="container mt-5" id="esewa">
 
+        <div class="container mt-5" id="esewa">
+            <hr />
             <form id="registrationForm">
                 <div class="form-row mb-3">
                     <div class="col-md-3">
@@ -300,6 +306,7 @@
                             $('#kendra').val(kendraId);
 
                             // Set service type if needed
+                            serviceTypeChange(data.serviceTableDetails.ServiceDetails);
                             $('#serviceType').val(serviceId).trigger('change');
                         });
                     });
@@ -318,15 +325,16 @@
                     $('#advocateDetails').hide();
                 }
             }
-
-            $('#serviceType').change(function () {
-                const serviceId = $(this).val();
-                if (serviceId) {
-                    loadServiceForm(serviceId);
-                } else {
-                    $('#serviceFormContainer').empty();
-                }
-            });
+            function serviceTypeChange(data) {
+                $('#serviceType').change(function () {
+                    const serviceId = $(this).val();
+                    if (serviceId) {
+                        loadServiceForm(serviceId, data);
+                    } else {
+                        $('#serviceFormContainer').empty();
+                    }
+                });
+            }
             $('#esewa').hide();
             $('#modifyButton').on('click', function () {
                 var tokenNumber = $('#token').val().trim();
@@ -360,9 +368,10 @@
                 }
             });
 
-            function loadServiceForm(serviceId) {
+            function loadServiceForm(serviceId, data) {
                 $(".loading-overlay").show();
-                fetch(`getServices?serviceId=${serviceId}`)
+                var servicedetails = encodeURIComponent(JSON.stringify(data));
+                fetch(`getServices?serviceId=${serviceId}&servicedetails=${servicedetails}`)
                     .then((response) => response.text())
                     .then((html) => {
                         document.getElementById("serviceFormContainer").innerHTML = html;
