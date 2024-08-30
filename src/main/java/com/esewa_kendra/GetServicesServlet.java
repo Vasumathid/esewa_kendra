@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -27,12 +28,15 @@ public class GetServicesServlet extends HttpServlet {
         String serviceIdParam = request.getParameter("serviceId");
         String jsonData = request.getParameter("servicedetails");
 
-        if (serviceIdParam != null) {
-            // URL-decode and parse the JSON data
+        // URL-decode and parse the JSON data if present
+        ObjectNode dataNode = null;
+        if (jsonData != null) {
             String decodedJsonData = URLDecoder.decode(jsonData, StandardCharsets.UTF_8.name());
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode dataNode = objectMapper.readTree(decodedJsonData);
+            dataNode = objectMapper.readTree(decodedJsonData).deepCopy();
+        }
 
+        if (serviceIdParam != null) {
             try (Connection conn = DBConfig.getConnection()) {
                 int serviceId = Integer.parseInt(serviceIdParam);
                 String query = "SELECT column_name, data_type, isRequired FROM service_columns WHERE service_id = ?";
@@ -49,14 +53,14 @@ public class GetServicesServlet extends HttpServlet {
                     String requiredAttribute = isRequired ? "required" : "";
                     String requiredClass = isRequired ? " class='required'" : "";
 
-                    // Fetch the value from JSON data
+                    // Fetch the value from JSON data if available
                     String value = "";
-                    if (dataNode.has(columnName)) {
+                    if (dataNode != null && dataNode.has(columnName)) {
                         value = dataNode.get(columnName).asText();
                     }
 
                     if (!columnName.equals("booking_id")) {
-                        if (columnName.equals("civil_or_criminal") || (columnName.equals("cnr_number"))) {
+                        if (columnName.equals("civil_or_criminal") || columnName.equals("cnr_number")) {
                             out.print("<div id='" + columnName + "'>");
                         }
                         out.print("<div class='form-row mb-3'>");
@@ -107,15 +111,6 @@ public class GetServicesServlet extends HttpServlet {
                                     + ("false".equals(value) ? "checked" : "") + " />"
                                     + "<label for='criminal' class='form-check-label'>Criminal</label>"
                                     + "</div>");
-                        } else if (columnName.equals("time_slot")) {
-                            out.print("<select name='time_slot' id='time_slot' class='form-control' "
-                                    + requiredAttribute + ">"
-                                    + "<option value=''>Select Time Slot</option>"
-                                    + "<option value='Forenoon'" + ("Forenoon".equals(value) ? " selected" : "")
-                                    + ">Forenoon</option>"
-                                    + "<option value='Afternoon'" + ("Afternoon".equals(value) ? " selected" : "")
-                                    + ">Afternoon</option>"
-                                    + "</select>");
                         } else {
                             String placeholder = "Enter " + formattedColumnString;
                             switch (dataType) {
@@ -127,11 +122,6 @@ public class GetServicesServlet extends HttpServlet {
                                 case "INT":
                                     out.print("<input type='number' name='" + columnName + "' id='" + columnName
                                             + "' class='form-control' placeholder='" + placeholder + "' "
-                                            + requiredAttribute + " value='" + value + "' />");
-                                    break;
-                                case "DATE":
-                                    out.print("<input type='date' name='" + columnName + "' id='" + columnName
-                                            + "' class='form-control date-Picker' placeholder='" + placeholder + "' "
                                             + requiredAttribute + " value='" + value + "' />");
                                     break;
                                 case "DECIMAL":
@@ -149,7 +139,7 @@ public class GetServicesServlet extends HttpServlet {
                         out.print("</div>");
                         out.print("</div>"); // End of form row
                         out.print("<br/>");
-                        if (columnName.equals("civil_or_criminal") || (columnName.equals("cnr_number"))) {
+                        if (columnName.equals("civil_or_criminal") || columnName.equals("cnr_number")) {
                             out.print("</div>");
                         }
                     }
@@ -158,6 +148,8 @@ public class GetServicesServlet extends HttpServlet {
                 e.printStackTrace();
                 out.print("<div class='alert alert-danger'>Error loading service form.</div>");
             }
+        } else {
+            out.print("<div class='alert alert-danger'>Service ID is missing.</div>");
         }
     }
 

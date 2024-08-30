@@ -39,6 +39,9 @@ public class BookServiceServlet extends HttpServlet {
         String advocateName = request.getParameter("advocateName");
         String isAdvocateParam = request.getParameter("advocateOrParty");
         Boolean isAdvocate = isAdvocateParam != null && isAdvocateParam.equals("advocate");
+        String dateStr = request.getParameter("date"); // Assuming the date is in yyyy-MM-dd format
+        String timeSlot = request.getParameter("timeSlot");
+        String timeRange = request.getParameter("timeRange");
 
         String enrollmentNumber;
         if (isAdvocate) {
@@ -51,7 +54,6 @@ public class BookServiceServlet extends HttpServlet {
         String status = "Confirmed";
         String tokenNumber = null;
         Map<String, String> validationErrors = validateRequiredFields(request, serviceId);
-
         // Check if booking is allowed
         if (!isBookingAllowed(enrollmentNumber, phoneNumber, serviceId, isAdvocate)) {
             response.setContentType("application/json");
@@ -75,9 +77,22 @@ public class BookServiceServlet extends HttpServlet {
             long timestamp = Instant.now().toEpochMilli(); // Get current time in milliseconds
 
             tokenNumber = statePrefix + districtPrefix + timestamp;
+            java.sql.Date sqlDate = null;
+            if (dateStr != null && !dateStr.trim().isEmpty()) {
+                try {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    java.util.Date parsedDate = dateFormat.parse(dateStr);
+                    sqlDate = new java.sql.Date(parsedDate.getTime());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    throw new ServletException("Error parsing date: " + dateStr, e);
+                }
+            }
+            Timestamp modifiedTime = new Timestamp(System.currentTimeMillis());
 
             // Insert booking details
-            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, isAdvocate, enrollment_number, phone_number, email, status, token_number, booking_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String bookingQuery = "INSERT INTO bookings (state_id, district_id, court_complex_id, kendra_id, service_id, advocate_name, isAdvocate, enrollment_number, phone_number, email, status, token_number, booking_time, date, time_slot, time_range) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
             try (PreparedStatement bookingStmt = conn.prepareStatement(bookingQuery, Statement.RETURN_GENERATED_KEYS)) {
                 bookingStmt.setInt(1, Integer.parseInt(stateId));
                 bookingStmt.setInt(2, Integer.parseInt(districtId));
@@ -92,6 +107,9 @@ public class BookServiceServlet extends HttpServlet {
                 bookingStmt.setString(11, status);
                 bookingStmt.setString(12, tokenNumber);
                 bookingStmt.setTimestamp(13, Timestamp.valueOf(LocalDateTime.now()));
+                bookingStmt.setDate(14, sqlDate); // New column
+                bookingStmt.setString(15, timeSlot); // New column
+                bookingStmt.setString(16, timeRange); // New column
                 bookingStmt.executeUpdate();
 
                 try (ResultSet rs = bookingStmt.getGeneratedKeys()) {
@@ -139,11 +157,10 @@ public class BookServiceServlet extends HttpServlet {
         try (Connection conn = DBConfig.getConnection()) {
             String tableName = serviceUtil.getTableNameForServiceById(serviceId);
             if (!tableName.equals("video_conferencing")) {
-                dateCondition = "AND CAST(st.date AS DATE) = CAST(GETDATE() AS DATE)";
+                dateCondition = "AND CAST(b.date AS DATE) = CAST(GETDATE() AS DATE)";
             }
-            String query = "SELECT COUNT(*) FROM bookings b " + "JOIN " + tableName
-                    + " st ON b.id = st.booking_id WHERE " + enrollmentCondition
-                    + " b.phone_number = ? " + dateCondition + "";
+            String query = "SELECT COUNT(*) FROM bookings b WHERE " + enrollmentCondition
+                    + " b.phone_number = ? and b.service_id=" + serviceId + " " + dateCondition + "";
 
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
                 if (isAdvocate) {
@@ -295,8 +312,14 @@ public class BookServiceServlet extends HttpServlet {
                             preparedStatement.setNull(index++, java.sql.Types.DATE);
                         }
                         break;
-                    default:
+                    case "BOOL":
+                        preparedStatement.setBoolean(index++, Boolean.parseBoolean(value));
+                        break;
+                    case "VARCHAR":
                         preparedStatement.setString(index++, value);
+                        break;
+                    default:
+                        throw new SQLException("Unsupported data type: " + dataType);
                 }
             }
         }

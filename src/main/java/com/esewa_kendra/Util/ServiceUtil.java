@@ -187,6 +187,19 @@ public class ServiceUtil {
                     bookingDetails.setTokenNumber(bookingDetailsRs.getString("token_number"));
                     bookingDetails.setBookingTime(bookingDetailsRs.getTimestamp("booking_time"));
                     bookingDetails.setIsAdvocate(bookingDetailsRs.getBoolean("isAdvocate")); // Assuming
+
+                    bookingDetails.setDate(
+                            bookingDetailsRs.getDate("date") != null ? bookingDetailsRs.getDate("date") : null);
+                    bookingDetails.setTimeSlot(
+                            bookingDetailsRs.getString("time_slot") != null ? bookingDetailsRs.getString("time_slot")
+                                    : "");
+                    bookingDetails.setModifiedTime(bookingDetailsRs.getTimestamp("modified_time") != null
+                            ? bookingDetailsRs.getTimestamp("modified_time")
+                            : null);
+                    bookingDetails.setTimeRange(
+                            bookingDetailsRs.getString("time_range") != null ? bookingDetailsRs.getString("time_range")
+                                    : "");
+
                 }
             }
         } catch (ClassNotFoundException e) {

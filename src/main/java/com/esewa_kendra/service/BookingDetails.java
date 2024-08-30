@@ -15,10 +15,14 @@ public class BookingDetails {
     private String email;
     private String status;
     private String tokenNumber;
-    private java.util.Date bookingTime; // Use java.util.Date for DATETIME
+    private java.sql.Timestamp bookingTime;
     private boolean isAdvocate;
+    private java.sql.Date date;
+    private String timeSlot;
+    private java.sql.Timestamp modifiedTime;
+    private String timeRange;
 
-    // Getter and Setter for id
+    // Getter and Setter methods
     public int getId() {
         return id;
     }
@@ -126,21 +130,51 @@ public class BookingDetails {
         this.tokenNumber = tokenNumber;
     }
 
-    // Getter and Setter for bookingTime
-    public java.util.Date getBookingTime() {
+    public java.sql.Timestamp getBookingTime() {
         return bookingTime;
     }
 
-    public void setBookingTime(java.util.Date bookingTime) {
+    public void setBookingTime(java.sql.Timestamp bookingTime) {
         this.bookingTime = bookingTime;
     }
 
-    // Getter and Setter for isAdvocate
-    public boolean getIsAdvocate() {
+    public boolean isAdvocate() {
         return isAdvocate;
     }
 
     public void setIsAdvocate(boolean isAdvocate) {
         this.isAdvocate = isAdvocate;
+    }
+
+    public java.sql.Date getDate() {
+        return date;
+    }
+
+    public void setDate(java.sql.Date date) {
+        this.date = date;
+    }
+
+    public String getTimeSlot() {
+        return timeSlot;
+    }
+
+    public void setTimeSlot(String timeSlot) {
+        this.timeSlot = timeSlot;
+    }
+
+    public java.sql.Timestamp getModifiedTime() {
+        return modifiedTime;
+    }
+
+    public void setModifiedTime(java.sql.Timestamp modifiedTime) {
+        this.modifiedTime = modifiedTime;
+    }
+
+    public String getTimeRange() {
+        return timeRange;
+    }
+
+    public void setTimeRange(String timeRange) {
+        this.timeRange = timeRange;
     }
 }

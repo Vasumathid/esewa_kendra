@@ -89,7 +89,7 @@ public class CheckAvailabilityServlet extends HttpServlet {
         }
 
         String countQuery = String.format(
-                "SELECT COUNT(*) FROM %s b JOIN bookings bk ON b.booking_id = bk.id WHERE b.date = ? AND b.time_slot = ? AND bk.kendra_id = ? AND bk.court_complex_id = ? AND bk.status = 'Confirmed'",
+                "SELECT COUNT(*) FROM bookings b WHERE b.date = ? AND b.time_slot = ? AND b.kendra_id = ? AND b.court_complex_id = ? AND b.status = 'Confirmed'",
                 tableName);
         try (PreparedStatement pstmt = conn.prepareStatement(countQuery)) {
             pstmt.setString(1, date);
@@ -117,9 +117,9 @@ public class CheckAvailabilityServlet extends HttpServlet {
 
         // Construct the query to filter by date and time slot specific to the service
         String query = "SELECT DISTINCT sk.id, sk.name FROM sewa_kendras sk " +
-                "LEFT JOIN bookings b ON sk.id = b.kendra_id AND s.date = ? AND s.time_slot = ? AND b.status = 'Confirmed' "
+                "LEFT JOIN bookings b ON sk.id = b.kendra_id AND b.date = ? AND b.time_slot = ? AND b.status = 'Confirmed' "
                 +
-                "LEFT JOIN " + serviceTable + " s ON b.id = s.booking_id AND s.date = ? AND s.time_slot = ? " +
+                "LEFT JOIN " + serviceTable + " s ON b.id = s.booking_id AND b.date = ? AND b.time_slot = ? " +
                 "WHERE b.id IS NULL AND sk.court_complex_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(query)) {

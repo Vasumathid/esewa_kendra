@@ -49,12 +49,44 @@
                 width: 100%;
             }
         }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            z-index: 9999;
+            display: none;
+            /* Hidden by default */
+            display: flex;
+            /* Ensure the spinner is centered */
+            align-items: center;
+            /* Vertically center */
+            justify-content: center;
+            /* Horizontally center */
+        }
+
+        .loading-overlay .spinner {
+            font-size: 2rem;
+            /* Adjust size as needed */
+            animation: zoom 1.5s ease-in-out infinite;
+            /* Apply zoom animation */
+        }
     </style>
 </head>
 
 <body>
     <div id="header-placeholder"></div>
     <div class="container">
+        <div class="loading-overlay">
+            <div class="spinner">
+                <i class="fa fa-spinner fa-spin"></i>
+            </div>
+        </div>
         <div class="box">
             <h1 class="display-4 title">Modify/Cancel Registration</h1>
             <hr class="my-4" />
@@ -69,15 +101,10 @@
                 </form>
             </div>
         </div>
-        <div class="loading-spinner mt-2">
-            <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
 
         <div class="container mt-5" id="esewa">
             <hr />
-            <form id="registrationForm">
+            <form id="registrationForm" method="post" action="modifyBooking">
                 <div class="form-row mb-3">
                     <div class="col-md-3">
                         <label for="state" class="required">State:</label>
@@ -86,6 +113,8 @@
                         </select>
                     </div>
                     <br />
+                    <input type="hidden" name="tokenNumber" id="tokenNumber" />
+                    <input type="hidden" name="bookingId" id="bookingId" />
                     <div class="col-md-3">
                         <label for="district" class="required">District:</label>
                         <select name="district" id="district" class="form-control">
@@ -139,14 +168,14 @@
                             <div class="col-md-6">
                                 <div class="form-check">
                                     <input type="radio" name="advocateOrParty" id="advocate" value="advocate"
-                                        class="form-check-input">
+                                        class="form-check-input" disabled>
                                     <label for="advocate" class="form-check-label">Advocate</label>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-check">
                                     <input type="radio" name="advocateOrParty" id="party" value="party"
-                                        class="form-check-input">
+                                        class="form-check-input" disabled>
                                     <label for="party" class="form-check-label">Party in person</label>
                                 </div>
                             </div>
@@ -161,7 +190,7 @@
                         </div>
                         <div class="col-md-8">
                             <input type="text" name="enrollmentNumber" id="enrollmentNumber" class="form-control"
-                                placeholder="State Code/Bar Code/Bar Year">
+                                placeholder="State Code/Bar Code/Bar Year" disabled>
                         </div>
                     </div>
                     <br />
@@ -173,12 +202,6 @@
                     <div class="col-md-8">
                         <input type="text" name="phoneNumber" id="phoneNumber" class="form-control"
                             placeholder="Enter 10 digit Phone number" required disabled />
-                        <!-- <button type="button" class="btn btn-primary" id="sendOtpButton">Send OTP</button> -->
-                        <!-- <div class="form-group" id="otpSection" style="display: none;">
-                                <label for="otp">Enter OTP:</label>
-                                <input type="text" class="form-control" id="otp" name="otp" required>
-                                <button type="button" class="btn btn-success" id="verifyOtpButton">Verify OTP</button>
-                            </div> -->
                     </div>
                 </div>
                 <br />
@@ -188,10 +211,34 @@
                     </div>
                     <div class="col-md-8">
                         <input type="email" name="email" id="email" placeholder="Enter Email id" class="form-control"
+                            required disabled />
+                    </div>
+                </div>
+                <br />
+                <div class="form-row mb-3">
+                    <div class="col-md-4">
+                        <label for="date" class="required">Date:</label>
+                    </div>
+                    <div class="col-md-8">
+                        <input type="date" name="date" id="date" class="form-control" placeholder="Select Date"
                             required />
                     </div>
                 </div>
                 <br />
+                <div class="form-row mb-3">
+                    <div class="col-md-4">
+                        <label for="time_slot" class="required">Time Slot:</label>
+                    </div>
+                    <div class="col-md-8">
+                        <select name="time_slot" id="time_slot" class="form-control" required>
+                            <option value="">Select Time Slot</option>
+                            <option value="forenoon">Forenoon</option>
+                            <option value="afternoon">Afternoon</option>
+                        </select>
+                    </div>
+                </div>
+                <br />
+
                 <div id="serviceFormContainer">
                     <!-- Dynamic service-specific form will be loaded here -->
                 </div>
@@ -208,6 +255,9 @@
     <div id="footer-placeholder"></div>
     <script>
         $(document).ready(function () {
+            $('#date').flatpickr({
+                dateFormat: "m/d/Y", // Set the format to mm/dd/yyyy
+            });
             function showLoadingOverlay() {
                 $(".loading-overlay").show();
             }
@@ -248,6 +298,33 @@
                 });
             }
 
+            $('#registrationForm').on('submit', function (event) {
+                event.preventDefault();
+
+                var $form = $(this);
+                var formData = $form.serialize();
+
+                showLoadingOverlay();
+
+                $.ajax({
+                    type: 'POST',
+                    url: $form.attr('action'),
+                    data: formData,
+                    dataType: 'json',
+                    success: function (response) {
+                        var messageClass = response.status === 'success' ? 'alert-success' : 'alert-danger';
+                        var message = response.message;
+
+                        $('#message').html(`<div class="alert ${messageClass}" role="alert">${message}</div>`);
+                    },
+                    error: function () {
+                        $('#message').html('<div class="alert alert-danger" role="alert">An unexpected error occurred. Please try again later.</div>');
+                    },
+                    complete: function () {
+                        hideLoadingOverlay();
+                    }
+                });
+            });
             function loadSewaKendras(courtComplexId) {
                 showLoadingOverlay();
                 return $.get("dynamicForm", { action: "sewaKendras", id: courtComplexId }).always(function () {
@@ -289,7 +366,8 @@
                 var courtComplexId = data.bookingDetails.courtComplexId;
                 var kendraId = data.bookingDetails.kendraId;
                 var serviceId = data.bookingDetails.serviceId;
-
+                $('#tokenNumber').val(data.bookingDetails.tokenNumber);
+                $('#bookingId').val(data.bookingDetails.id);
                 // Set state value and trigger change
                 $('#state').val(stateId).trigger('change');
 
@@ -316,6 +394,12 @@
                 $('#enrollmentNumber').val(data.bookingDetails.enrollmentNumber);
                 $('#phoneNumber').val(data.bookingDetails.phoneNumber);
                 $('#email').val(data.bookingDetails.email);
+                // Assuming data.bookingDetails.date is in the format "Aug 30, 2024"
+                var bookingDate = new Date(data.bookingDetails.date);
+                var formattedDate = (bookingDate.getMonth() + 1) + '/' + bookingDate.getDate() + '/' + bookingDate.getFullYear();
+
+                $('#date').val(formattedDate);
+                $('#time_slot').val(data.bookingDetails.timeSlot);
 
                 if (data.bookingDetails.isAdvocate) {
                     $('#advocate').prop('checked', true);
@@ -339,7 +423,7 @@
             $('#modifyButton').on('click', function () {
                 var tokenNumber = $('#token').val().trim();
                 if (tokenNumber) {
-                    $('.loading-spinner').show();
+                    showLoadingOverlay();
                     $('#modifyButton').prop('disabled', true);
 
                     $.ajax({
@@ -359,7 +443,7 @@
                             $('#responseMessage').html('<div class="alert alert-danger" role="alert">An unexpected error occurred. Please try again later.</div>');
                         },
                         complete: function () {
-                            $('.loading-spinner').hide();
+                            hideLoadingOverlay();
                             $('#modifyButton').prop('disabled', false);
                         }
                     });
@@ -369,13 +453,13 @@
             });
 
             function loadServiceForm(serviceId, data) {
-                $(".loading-overlay").show();
+                // showLoadingOverlay();
                 var servicedetails = encodeURIComponent(JSON.stringify(data));
                 fetch(`getServices?serviceId=${serviceId}&servicedetails=${servicedetails}`)
                     .then((response) => response.text())
                     .then((html) => {
                         document.getElementById("serviceFormContainer").innerHTML = html;
-                        $(".loading-overlay").hide();
+                        hideLoadingOverlay();
 
                         flatpickr(".date-picker", {
                             minDate: "today",

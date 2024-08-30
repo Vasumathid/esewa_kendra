@@ -183,6 +183,30 @@
         </div>
       </div>
       <br />
+      <div class="form-row mb-3">
+        <div class="col-md-4">
+          <label for="date" class="required">Date:</label>
+        </div>
+        <div class="col-md-8">
+          <input type="date" name="date" id="date" class="form-control date-Picker" placeholder="Select Date"
+            required />
+        </div>
+      </div>
+      <br />
+      <div class="form-row mb-3">
+        <div class="col-md-4">
+          <label for="time_slot" class="required">Time Slot:</label>
+        </div>
+        <div class="col-md-8">
+          <select name="timeSlot" id="time_slot" class="form-control" required>
+            <option value="">Select Time Slot</option>
+            <option value="forenoon">Forenoon</option>
+            <option value="afternoon">Afternoon</option>
+          </select>
+        </div>
+      </div>
+      <br />
+
       <div id="serviceFormContainer">
         <!-- Dynamic service-specific form will be loaded here -->
       </div>
